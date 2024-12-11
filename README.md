@@ -31,7 +31,7 @@ Then run the install script:
 ./install.sh
 ```
 
-To be able to import the library from Python add `${MOLECULE_AUTO_CORRECT}/lib` to your `${PYTHONPATH}`. Consider doing so in your `bash_profile` file. Otherwise you'll have to manually extend `${PYTHONPATH}` everytime you open a new shell.
+To be able to import the library from Python add `${MOLECULE_AUTO_CORRECT}/lib` and `${MOLPERT}/lib` to your `${PYTHONPATH}`. Consider doing so in your `bash_profile` file. Otherwise you'll have to manually extend `${PYTHONPATH}` everytime you open a new shell.
 
 ```shell
 export PYTHONPATH="${PYTHONPATH}:${MOLECULE_AUTO_CORRECT}/lib"
@@ -59,13 +59,13 @@ bin/MakeChemicalDictionary tmc.smi tmc.dict 1
 Given the SMILES string of a TMC `CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC` you can inspect if it has any issues:
 
 ```shell
-bin/HighlightMoleculeErrors chembl.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" molecule_errors.svg
+bin/HighlightMoleculeErrors tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" molecule_errors.svg
 ```
 
 If it has issues you can proceed to try correcting them:
 
 ```shell
-python AutoCorrectMolecule.py chembl.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC"
+python AutoCorrectMolecule.py tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC"
 ```
 
 You can experiment with different settings, including tree policies. Access the `--help` for more information.

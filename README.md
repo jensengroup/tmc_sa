@@ -22,8 +22,7 @@ Ensure the following dependencies are installed:
 
 The following instructions are for GNU+Linux. For alternative operating systems you'll have to adapt these commands slightly.
 
-First install the (env.yml)[env.yml] file into a conda env.
-
+First install the [env.yml](env.yml) file into a conda env.
 Then install MoleculeAutoCorrect and Molpert.
 
 ```shell

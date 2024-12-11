@@ -31,14 +31,12 @@ Then run the install script:
 ./install.sh
 ```
 
-````
-
 To be able to import the library from Python add `${MOLECULE_AUTO_CORRECT}/lib` to your `${PYTHONPATH}`. Consider doing so in your `bash_profile` file. Otherwise you'll have to manually extend `${PYTHONPATH}` everytime you open a new shell.
 
 ```shell
 export PYTHONPATH="${PYTHONPATH}:${MOLECULE_AUTO_CORRECT}/lib"
 export PYTHONPATH="${PYTHONPATH}:${MOLPERT}/lib"
-````
+```
 
 ### Troubleshooting
 

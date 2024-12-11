@@ -19,6 +19,8 @@ set(MOLECULEAUTOCORRECT_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH ${MOLECULEAUTOCORRECT_LIB_DIR})
 
+set(RDKit_ROOT /home/magstr/miniconda3/envs/GA_env_new/include/rdkit)
+
 # Search for the RDKit.
 # If found this will also retrieve the Boost version used to build the RDKit.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)

@@ -1,26 +1,30 @@
 # About
 
-Spell checker for your molecular graphs. A virtual library of reference correct molecules is used to build a dictionary of allowed chemical features. The chemical features of input molecules are compared against this dictionary. If any invalid features are present the molecule is modified in a controlled way to find a closely related valid molecule.
+SA like score for TMCs.
 
-For more information on the algorithm please read the accompanying paper:
+Spell checker for your molecular graphs. A virtual library of reference correct TMCs is used to build a dictionary of allowed chemical features. The chemical features of input molecules are compared against this dictionary.
+
+Based on work by:
 [Kerstjens, A., De Winter, H. Molecule auto-correction to facilitate molecular design. J Comput Aided Mol Des 38, 10 (2024).](https://doi.org/10.1007/s10822-024-00549-1)
 
 # Installation
-
-## Installation from source
 
 ### Prerequisites
 
 Ensure the following dependencies are installed:
 
-* [RDKit](https://rdkit.org/)
-* [Molpert](https://github.com/AlanKerstjens/Molpert)
-* [Boost](https://www.boost.org/). You already have this if you installed the RDKit. If you'd like to build the Python bindings make sure Boost.Python is installed.
-* [CMake](https://cmake.org/)
+- [RDKit](https://rdkit.org/)
+- [Molpert](https://github.com/AlanKerstjens/Molpert)
+- [Boost](https://www.boost.org/). You already have this if you installed the RDKit. If you'd like to build the Python bindings make sure Boost.Python is installed.
+- [CMake](https://cmake.org/)
 
 ### Instructions
 
 The following instructions are for GNU+Linux. For alternative operating systems you'll have to adapt these commands slightly.
+
+First install the (env.yml)[env.yml] file into a conda env.
+
+Then install MoleculeAutoCorrect and Molpert.
 
 ```shell
 git clone https://github.com/AlanKerstjens/MoleculeAutoCorrect.git
@@ -53,22 +57,22 @@ cmake -DRDKit_ROOT=<path/to/rdkit> -DMolpert_INCLUDE_DIRS=<path/to/molpert> ..
 
 # Quick start
 
-Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `chembl.smi`). Then use this library to create a dictionary of chemical features (here `chembl.dict`). You can specify the radius of circular atomic environments as the last argument (here `1`).
+Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `tmc.smi`). Then use this library to create a dictionary of chemical features (here `tmc.dict`). You can specify the radius of circular atomic environments as the last argument (here `1`).
 
 ```shell
-${MOLECULE_AUTO_CORRECT}/bin/MakeChemicalDictionary chembl.smi chembl.dict 1
+${MOLECULE_AUTO_CORRECT}/bin/MakeChemicalDictionary tmc.smi tmc.dict 1
 ```
 
-Given the SMILES string of a molecule (here `[OH2+]C1C([O-])[C]11=C(C#P)C2=S(=C1)C=NC=N2`) you can inspect if it has any issues:
+Given the SMILES string of a TMC `CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC` you can inspect if it has any issues:
 
 ```shell
-${MOLECULE_AUTO_CORRECT}/bin/HighlightMoleculeErrors chembl.dict "[OH2+]C1C([O-])[C]11=C(C#P)C2=S(=C1)C=NC=N2" molecule_errors.svg
+${MOLECULE_AUTO_CORRECT}/bin/HighlightMoleculeErrors chembl.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" molecule_errors.svg
 ```
 
-If it has issues you can proceed to try correcting them: 
+If it has issues you can proceed to try correcting them:
 
 ```shell
-python ${MOLECULE_AUTO_CORRECT}/AutoCorrectMolecule.py chembl.dict "[OH2+]C1C([O-])[C]11=C(C#P)C2=S(=C1)C=NC=N2"
+python ${MOLECULE_AUTO_CORRECT}/AutoCorrectMolecule.py chembl.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC"
 ```
 
 You can experiment with different settings, including tree policies. Access the `--help` for more information.

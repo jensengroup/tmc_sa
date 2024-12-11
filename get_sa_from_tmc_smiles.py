@@ -5,6 +5,13 @@ import json
 from rdkit import Chem
 import subprocess
 import re
+import logging
+
+# Initialize logging
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 
 def Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
@@ -29,6 +36,7 @@ def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
 
 def parse_subprocess_output(command, current_env):
 
+    logger.debug(f"Running subprocess with command: {command}")
     result = subprocess.run(
         command,
         env=current_env,
@@ -95,13 +103,8 @@ def parse_subprocess_output(command, current_env):
             }
         )
 
+    logger.debug(f"Parsed subprocess output: {parsed_data}")
     return parsed_data
-
-
-# Example usage
-# Replace ['your-command'] with the actual command to run the subprocess
-# parsed_output = parse_subprocess_output(['your-command'])
-# print(parsed_output)
 
 
 def ParseArgs(arg_list=None):
@@ -109,6 +112,13 @@ def ParseArgs(arg_list=None):
         description="Run GA algorithm", fromfile_prefix_chars="+"
     )
     parser.add_argument("--smiles", type=str, default=None)
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the logging level",
+    )
     return parser.parse_args(arg_list)
 
 
@@ -138,7 +148,7 @@ def get_familiarity(smiles):
     # Add/Modify the environment variable
     current_env["MOLECULE_AUTO_CORRECT"] = "/home/magstr/git/MoleculeAutoCorrect"
     current_env["MOLPERT"] = "/home/magstr/git/Molpert"
-    print(current_env)
+    logger.debug(f"Environment variables set: {current_env}")
 
     # Define the command
     command = [
@@ -147,14 +157,12 @@ def get_familiarity(smiles):
         smiles,
         "/tmp/image.svg",
     ]
-    print(command)
+    logger.info(f"Executing command for SMILES: {smiles}")
 
     # Run the subprocess
     output = parse_subprocess_output(command, current_env)
 
-    print("Getting familiarity")
-
-    # m = Chem.MolFromSmiles(smiles)
+    logger.info("Getting familiarity")
 
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
@@ -163,13 +171,16 @@ def get_familiarity(smiles):
     # fam1 = Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
     fam2 = Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
 
-    print(f"Familiarity1: {fam1}\nFamiliarity2: {fam2}")
+    logger.info(f"Familiarity1: {fam1}")
+    logger.info(f"Familiarity2: {fam2}")
 
     return fam2
 
 
 if __name__ == "__main__":
     args = ParseArgs()
+    logger.setLevel(getattr(logging, args.log_level))
+
     # Get the current environment variables
     current_env = os.environ.copy()
 
@@ -184,9 +195,9 @@ if __name__ == "__main__":
     # Run the subprocess
     output = parse_subprocess_output(command, current_env)
 
-    print(json.dumps(output, indent=4))
+    logger.debug(json.dumps(output, indent=4))
 
-    print("Getting familiarity")
+    logger.info("Getting familiarity")
 
     m = Chem.MolFromSmiles(
         "Cc1cc2ccccc2c2-c3c([O-]->[Ir+2]4(<-[O-]c12)<-N(C)(CCN->4(C)Cc1ccccc1)Cc1ccccc1)c(C)cc1ccccc31"
@@ -199,4 +210,5 @@ if __name__ == "__main__":
     fam1 = Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
     fam2 = Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
 
-    print(f"Familiarity1: {fam1}\nFamiliarity2: {fam2}")
+    logger.info(f"Familiarity1: {fam1}")
+    logger.info(f"Familiarity2: {fam2}")

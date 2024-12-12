@@ -73,7 +73,9 @@ def get_dict():
     logger.info(f"Adding {len(mols)} mols to the dictionary")
 
     start = time.time()
-    for mol in mols[1::]:  # We dont have to add the first entry again
+    for i, mol in enumerate(mols[1::]):  # We dont have to add the first entry again
+        if i % 10000 == 0:
+            logger.info(f"Processed {i} mols")
         if not mol:
             continue
         dictionary.AddMolecule(mol)

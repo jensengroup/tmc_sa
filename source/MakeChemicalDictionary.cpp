@@ -30,6 +30,10 @@ int main(int argc, char *argv[]) {
   RDKit::ROMOL_SPTR molecule;
   int iteration = 1; // Counter for iterations
   while (!supplier.atEnd()) {
+    if (iteration == 2) {
+      std::cout << "Breaking after 1 iteration" << std::endl;
+      break;
+    }
     std::cout << "At iteration" << iteration << std::endl;
     // Check if the current iteration should be skipped
     // if (skipIterations.find(iteration) != skipIterations.end()) {
@@ -40,9 +44,6 @@ int main(int argc, char *argv[]) {
 
     // std::cout << "Dictionary size at iteration " << iteration << ": "
     //       << dictionary.size() << std::endl;
-    if (iteration == 2) {
-      break;
-    }
 
     // if (iteration % 4000 == 0) {
     //     std::ostringstream filename;
@@ -58,13 +59,13 @@ int main(int argc, char *argv[]) {
     molecule.reset(supplier.next());
     // std::cout << "Just reset" << iteration << std::endl;
     if (!molecule) {
-      std::cout << "No mol" << iteration << std::endl;
+      std::cout << "No mol obtained from the smiles" << iteration << std::endl;
       continue;
     };
     if (kekulize) {
       RDKit::RWMol kekulized_molecule(*molecule);
       if (!RDKit::MolOps::KekulizeIfPossible(kekulized_molecule)) {
-        std::cout << "could not keku" << iteration << std::endl;
+        std::cout << "Could not kekulize" << iteration << std::endl;
         continue;
       };
       dictionary.AddMolecule(kekulized_molecule);

@@ -135,7 +135,7 @@ def ParseArgs(arg_list=None):
     return parser.parse_args(arg_list)
 
 
-def get_familiarity(smiles):
+def get_familiarity(smiles, reference_dict=None):
 
     # Get the current environment variables
     current_env = os.environ.copy()
@@ -147,7 +147,7 @@ def get_familiarity(smiles):
     # Define the command
     command = [
         f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/HighlightMoleculeErrors",
-        "/home/magstr/git/MoleculeAutoCorrect/dicts/csd_smiles_both_agree.dict",
+        reference_dict,
         smiles,
         "/tmp/image.svg",
     ]

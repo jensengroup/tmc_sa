@@ -6,11 +6,8 @@ from rdkit import Chem
 import subprocess
 import re
 import logging
+from database import DatabaseManager
 
-# Initialize logging
-logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
-)
 logger = logging.getLogger(__name__)
 
 
@@ -34,8 +31,7 @@ def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     return familiarity
 
 
-def parse_subprocess_output(command, current_env):
-
+def run_shell(command, current_env):
     logger.debug(f"Running subprocess with command: {command}")
     result = subprocess.run(
         command,
@@ -46,6 +42,17 @@ def parse_subprocess_output(command, current_env):
     )
 
     output = result.stdout
+    logger.debug(f"Raw subprocess output: \n{output}")
+
+    if result.stderr:
+        logger.error(f"Error output: {result.stderr}")
+
+    return output
+
+
+def parse_subprocess_output(command, current_env):
+
+    output = run_shell(command, current_env)
 
     parsed_data = {
         "input_molecule": command[2],
@@ -113,30 +120,18 @@ def ParseArgs(arg_list=None):
     )
     parser.add_argument("--smiles", type=str, default=None)
     parser.add_argument(
-        "--log-level",
+        "--log_level",
         type=str,
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         default="INFO",
         help="Set the logging level",
     )
-    return parser.parse_args(arg_list)
-
-
-def get_arguments(arg_list=None) -> argparse.Namespace:
-    """
-
-    Args:
-        arg_list: Automatically obtained from the commandline if provided.
-        Otherwise default arguments are used
-
-    Returns:
-        parser.parse_args(arg_list)(Namespace): Dictionary like class that contain the driver arguments.
-
-    """
-    parser = argparse.ArgumentParser(
-        description="Run GA algorithm", fromfile_prefix_chars="+"
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default="familiarity_scores.db",
+        help="Path to the SQLite database file",
     )
-    parser.add_argument(name="smiles", type=str, default=None)
     return parser.parse_args(arg_list)
 
 
@@ -146,9 +141,8 @@ def get_familiarity(smiles):
     current_env = os.environ.copy()
 
     # Add/Modify the environment variable
-    current_env["MOLECULE_AUTO_CORRECT"] = "/home/magstr/git/MoleculeAutoCorrect"
-    current_env["MOLPERT"] = "/home/magstr/git/Molpert"
-    logger.debug(f"Environment variables set: {current_env}")
+    # current_env["MOLECULE_AUTO_CORRECT"] = "/home/magstr/git/MoleculeAutoCorrect"
+    # current_env["MOLPERT"] = "/home/magstr/git/Molpert"
 
     # Define the command
     command = [
@@ -161,54 +155,43 @@ def get_familiarity(smiles):
 
     # Run the subprocess
     output = parse_subprocess_output(command, current_env)
-
-    logger.info("Getting familiarity")
-
-    n_foreign_atoms = int(output["foreign_atom_keys"])
-    n_foreign_bonds = int(output["foreign_bond_keys"])
-    n_foreign_environments = int(len(output["foreign_atomic_environments"]))
-
-    # fam1 = Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
-    fam2 = Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
-
-    logger.info(f"Familiarity1: {fam1}")
-    logger.info(f"Familiarity2: {fam2}")
-
-    return fam2
-
-
-if __name__ == "__main__":
-    args = ParseArgs()
-    logger.setLevel(getattr(logging, args.log_level))
-
-    # Get the current environment variables
-    current_env = os.environ.copy()
-
-    # Define the command
-    command = [
-        f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/HighlightMoleculeErrors",
-        "/home/magstr/git/MoleculeAutoCorrect/dicts/csd_smiles_both_agree.dict",
-        args.smiles,
-        "molecule_errors.svg",
-    ]
-
-    # Run the subprocess
-    output = parse_subprocess_output(command, current_env)
-
+    # logger.debug(pformat(output))
     logger.debug(json.dumps(output, indent=4))
 
     logger.info("Getting familiarity")
 
-    m = Chem.MolFromSmiles(
-        "Cc1cc2ccccc2c2-c3c([O-]->[Ir+2]4(<-[O-]c12)<-N(C)(CCN->4(C)Cc1ccccc1)Cc1ccccc1)c(C)cc1ccccc31"
-    )
-
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
     n_foreign_environments = int(len(output["foreign_atomic_environments"]))
 
+    m = Chem.MolFromSmiles(smiles)
+
     fam1 = Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
     fam2 = Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
 
-    logger.info(f"Familiarity1: {fam1}")
-    logger.info(f"Familiarity2: {fam2}")
+    logger.info(f"Familiarity1: {fam1} | Familiarity2: {fam2}")
+
+    return fam1, fam2
+
+
+if __name__ == "__main__":
+    args = ParseArgs()
+    # Initialize logging
+    logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
+    logger.setLevel(getattr(logging, args.log_level))
+
+    # Initialize database manager
+    db_manager = DatabaseManager(args.db_path)
+
+    # Check if the familiarity score already exists
+    existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
+    if existing_score is not None:
+        logger.info(f"Familiarity score for SMILES already exists: {existing_score}")
+
+    else:
+        # Compute or retrieve familiarity score
+        fam1, fam2 = get_familiarity(args.smiles)
+        logger.info(f"Familiarity1: {fam1} | Familiarity2: {fam2}")
+
+        # Store the familiarity score in the database
+        db_manager.store_familiarity_scores(args.smiles, fam1, fam2)

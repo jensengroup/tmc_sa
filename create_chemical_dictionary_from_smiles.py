@@ -1,0 +1,96 @@
+import os
+import argparse
+import time
+import rdkit
+from rdkit import Chem
+import logging
+import pandas as pd
+from get_sa_from_tmc_smiles import run_shell
+import MoleculeAutoCorrect as mac
+
+logger = logging.getLogger(__name__)
+
+
+def ParseArgs(arg_list=None):
+    parser = argparse.ArgumentParser(
+        description="Create chemical dictionary", fromfile_prefix_chars="+"
+    )
+    parser.add_argument(
+        "--smiles_data",
+        type=str,
+        default=None,
+        help="Path to .smi file",
+    )
+    parser.add_argument(
+        "--dict_name",
+        type=str,
+        default=None,
+        help="Output dict name",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Set debug mode",
+    )
+    return parser.parse_args(arg_list)
+
+
+def get_dict():
+
+    # Get the current environment variables
+    current_env = os.environ.copy()
+
+    # # Add/Modify the environment variable
+    # current_env["MOLECULE_AUTO_CORRECT"] = "/home/magstr/git/MoleculeAutoCorrect"
+    # current_env["MOLPERT"] = "/home/magstr/git/Molpert"
+
+    # Define the command
+    command = [
+        f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/MakeChemicalDictionary",
+        f"{args.smiles_data}",
+        f"{args.dict_name}",
+        "1",
+    ]
+
+    # Run the subprocess
+    output = run_shell(command, current_env)
+
+    if "Error" in output:
+        logger.error("Could not create dictionary")
+        return
+
+    dictionary = mac.ChemicalDictionary(args.dict_name)
+
+    # Get mols from smiles data
+    smiles = pd.read_csv(args.smiles_data, header=None)[0]
+    logger.info(f"Loaded data: \n {smiles.head(5).to_string()}")
+
+    if args.debug:
+        smiles = smiles[0:200]
+
+    mols = [Chem.MolFromSmiles(smi) for smi in smiles if smi]
+
+    logger.info(f"Adding {len(mols)} mols to the dictionary")
+
+    start = time.time()
+    for mol in mols[1::]:  # We dont have to add the first entry again
+        if not mol:
+            continue
+        dictionary.AddMolecule(mol)
+    end = time.time()
+
+    dictionary.number_of_molecules = len(mols)
+    dictionary.dataset = args.smiles_data
+    dictionary.Save(args.dict_name)
+
+    logger.info(f"Created dictionary in {end-start} seconds")
+
+    return
+
+
+if __name__ == "__main__":
+    args = ParseArgs()
+    level = "DEBUG" if args.debug else "INFO"
+    # Initialize logging
+    logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=level)
+    get_dict()

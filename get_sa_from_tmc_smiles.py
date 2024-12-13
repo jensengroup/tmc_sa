@@ -183,6 +183,10 @@ if __name__ == "__main__":
     # Initialize database manager
     db_manager = DatabaseManager(args.db_path)
 
+    # Reference dictionary
+    reference_dict = (
+        "/home/magstr/git/MoleculeAutoCorrect/dicts/csd_smiles_both_agree_train.dict"
+    )
     # Check if the familiarity score already exists
     existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
     if existing_score is not None:
@@ -190,7 +194,7 @@ if __name__ == "__main__":
 
     else:
         # Compute or retrieve familiarity score
-        fam1, fam2 = get_familiarity(args.smiles)
+        fam1, fam2 = get_familiarity(args.smiles, reference_dict=reference_dict)
         logger.info(f"Familiarity1: {fam1} | Familiarity2: {fam2}")
 
         # Store the familiarity score in the database

@@ -4,17 +4,12 @@
 set -e
 
 # Clone the repository
-git clone https://github.com/AlanKerstjens/MoleculeAutoCorrect.git
 git clone https://github.com/AlanKerstjens/Molpert.git
 
 # Install molpert
-export MOLPERT="$(pwd)/Molpert"
 mkdir ${MOLPERT}/build && cd ${MOLPERT}/build
 cmake ..
 make install
-
-# Set the MOLECULE_AUTO_CORRECT environment variable
-export MOLECULE_AUTO_CORRECT="$(pwd)/MoleculeAutoCorrect"
 
 # Create the build directory and navigate into it
 mkdir -p "${MOLECULE_AUTO_CORRECT}/build"

@@ -248,7 +248,7 @@ def ParseArgs(arg_list=None):
     return parser.parse_args(arg_list)
 
 
-def get_familiarity(smiles, score_type="Familiarity1", reference_dict=None):
+def get_familiarity(smiles, reference_dict=None):
 
     # Get the current environment variables
     current_env = os.environ.copy()

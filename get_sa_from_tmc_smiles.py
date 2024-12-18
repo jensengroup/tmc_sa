@@ -11,6 +11,75 @@ from database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
+TRANSITION_METALS_NUM = [
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    57,
+    28,
+    29,
+    30,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+]
+
+TRANSITION_METALS = [
+    "Sc",
+    "Ti",
+    "V",
+    "Cr",
+    "Mn",
+    "Fe",
+    "Co",
+    "La",
+    "Ni",
+    "Cu",
+    "Zn",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Tc",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "Lu",
+    "Hf",
+    "Ta",
+    "W",
+    "Re",
+    "Os",
+    "Ir",
+    "Pt",
+    "Au",
+    "Hg",
+]
+tm = f"[{','.join(TRANSITION_METALS)}]"
+
 
 def Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
 
@@ -28,6 +97,19 @@ def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     n_keys = m.GetNumAtoms() * 2 + m.GetNumBonds()
 
     familiarity = (n_keys - n_foreign_keys) / n_keys
+
+    return familiarity
+
+
+def Familiarity1_bonds(m, n_foreign_tm_bonds):
+
+    neighbors = m.GetAtomWithIdx(
+        m.GetSubstructMatch(Chem.MolFromSmarts(tm))[0]
+    ).GetNeighbors()
+
+    n_keys = len(neighbors)
+
+    familiarity = (n_keys - n_foreign_tm_bonds) / n_keys
 
     return familiarity
 
@@ -62,6 +144,7 @@ def parse_subprocess_output(command, current_env):
         "foreign_bond_keys": 0,
         "bonds": [],
         "foreign_atomic_environments": [],
+        "foreign_tm_bonds": 0,
     }
 
     # Parse the input molecule
@@ -111,6 +194,28 @@ def parse_subprocess_output(command, current_env):
             }
         )
 
+    pattern = re.compile(
+        r"\((-?\d+,-?\d+,-?\d+,-?\d+,-?\d+)\)->\((-?\d+,-?\d+,-?\d+,-?\d+,-?\d+)\)"
+    )
+    count = 0
+    for match in re.finditer(pattern, output):
+        left_tuple_str = match.group(1)
+        right_tuple_str = match.group(2)
+
+        # Convert to integers
+        left_tuple = list(map(int, left_tuple_str.split(",")))
+        right_tuple = list(map(int, right_tuple_str.split(",")))
+
+        # The "third position" means index 2 (0-based indexing)
+        left_third = left_tuple[2]
+        right_third = right_tuple[2]
+
+        left_is_transition = left_third in TRANSITION_METALS_NUM
+        right_is_transition = right_third in TRANSITION_METALS_NUM
+        if left_is_transition or right_is_transition:
+            count += 1
+    parsed_data["foreign_tm_bonds"] = count
+
     logger.debug(f"Parsed subprocess output: {parsed_data}")
     return parsed_data
 
@@ -133,10 +238,17 @@ def ParseArgs(arg_list=None):
         default="familiarity_scores.db",
         help="Path to the SQLite database file",
     )
+    parser.add_argument(
+        "--score_type",
+        type=str,
+        default="Familiarity1",
+        choices=["Familiarity1", "Familiarity1_bonds", "Familiarity2"],
+        help="Path to the SQLite database file",
+    )
     return parser.parse_args(arg_list)
 
 
-def get_familiarity(smiles, reference_dict=None):
+def get_familiarity(smiles, score_type="Familiarity1", reference_dict=None):
 
     # Get the current environment variables
     current_env = os.environ.copy()
@@ -152,27 +264,31 @@ def get_familiarity(smiles, reference_dict=None):
         smiles,
         "/tmp/image.svg",
     ]
-    logger.info(f"Executing command for SMILES: {smiles}")
+    logger.debug(f"Executing command for SMILES: {smiles}")
 
     # Run the subprocess
     output = parse_subprocess_output(command, current_env)
     # logger.debug(pformat(output))
     logger.debug(json.dumps(output, indent=4))
 
-    logger.info("Getting familiarity")
+    logger.debug("Getting familiarity")
 
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
     n_foreign_environments = int(len(output["foreign_atomic_environments"]))
+    n_foreign_tm_bonds = int(output["foreign_tm_bonds"])
 
-    m = Chem.MolFromSmiles(smiles)
+    m = Chem.MolFromSmiles(smiles, sanitize=False)
 
     fam1 = Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
     fam2 = Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
+    fam3 = Familiarity1_bonds(m, n_foreign_tm_bonds)
 
-    logger.info(f"Familiarity1: {fam1} | Familiarity2: {fam2}")
+    logger.debug(
+        f"Familiarity1: {fam1} | Familiarity2: {fam2} | Familiarity_bonds: {fam3}"
+    )
 
-    return fam1, fam2
+    return fam1, fam2, fam3
 
 
 if __name__ == "__main__":
@@ -193,8 +309,12 @@ if __name__ == "__main__":
 
     else:
         # Compute or retrieve familiarity score
-        fam1, fam2 = get_familiarity(args.smiles, reference_dict=str(reference_dict))
-        logger.info(f"Familiarity1: {fam1} | Familiarity2: {fam2}")
+        fam1, fam2, fam3 = get_familiarity(
+            args.smiles, reference_dict=str(reference_dict)
+        )
+        logger.debug(
+            f"Familiarity1: {fam1} | Familiarity2: {fam2} | Familiarity_bonds: {fam3}"
+        )
 
         # Store the familiarity score in the database
         db_manager.store_familiarity_scores(args.smiles, fam1, fam2)

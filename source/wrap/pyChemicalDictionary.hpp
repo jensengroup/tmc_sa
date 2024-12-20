@@ -60,11 +60,11 @@ void WrapChemicalDictionary() {
     .add_property("atom_dictionary", &GetAtomDictionary)
     .add_property("bond_dictionary", &GetBondDictionary)
     .add_property("environment_dictionary", &GetEnvironmentDictionary)
-    .add_property("total_atom_frequency", 
+    .add_property("total_atom_frequency",
       &ChemicalDictionary::GetTotalAtomFrequency)
-    .add_property("total_bond_frequency", 
+    .add_property("total_bond_frequency",
       &ChemicalDictionary::GetTotalBondFrequency)
-    .add_property("environment_radius", 
+    .add_property("environment_radius",
       &ChemicalDictionary::GetEnvironmentRadius)
     .def_readwrite("foreign_d_frequency_threshold", &ChemicalDictionary::foreign_d_frequency_threshold)
     .def_readwrite("foreign_dv_frequency_threshold", &ChemicalDictionary::foreign_dv_frequency_threshold)

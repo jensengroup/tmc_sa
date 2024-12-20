@@ -24,7 +24,7 @@ auto operator+(
   const Function<Args...>& expression2) {
   return Function<Args...>(
     [=] (Args&&... args) {
-      return expression1(std::forward<Args>(args)...) + 
+      return expression1(std::forward<Args>(args)...) +
              expression2(std::forward<Args>(args)...);
     });
 };
@@ -54,7 +54,7 @@ auto operator-(
   const Function<Args...>& expression2) {
   return Function<Args...>(
     [=] (Args&&... args) {
-      return expression1(std::forward<Args>(args)...) - 
+      return expression1(std::forward<Args>(args)...) -
              expression2(std::forward<Args>(args)...);
     });
 };
@@ -87,7 +87,7 @@ auto operator*(
   const Function<Args...>& expression2) {
   return Function<Args...>(
     [=] (Args&&... args) {
-      return expression1(std::forward<Args>(args)...) * 
+      return expression1(std::forward<Args>(args)...) *
              expression2(std::forward<Args>(args)...);
     });
 };
@@ -117,7 +117,7 @@ auto operator/(
   const Function<Args...>& expression2) {
   return Function<Args...>(
     [=] (Args&&... args) {
-      return expression1(std::forward<Args>(args)...) / 
+      return expression1(std::forward<Args>(args)...) /
              expression2(std::forward<Args>(args)...);
     });
 };

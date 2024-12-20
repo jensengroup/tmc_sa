@@ -1,12 +1,13 @@
-import os
 import argparse
-import time
-import rdkit
-from rdkit import Chem
 import logging
+import os
+import time
+
 import pandas as pd
-from get_sa_from_tmc_smiles import run_shell
+from rdkit import Chem
+
 import MoleculeAutoCorrect as mac
+from get_sa_from_tmc_smiles import run_shell
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,6 @@ def ParseArgs(arg_list=None):
 
 
 def get_dict():
-
     # Get the current environment variables
     current_env = os.environ.copy()
 

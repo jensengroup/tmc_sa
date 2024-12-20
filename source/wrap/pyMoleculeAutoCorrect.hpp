@@ -15,7 +15,7 @@ python::list GetPerturbationTypePriority(
 void SetPerturbationTypePriority(
   MoleculeAutoCorrect::Settings& settings,
   const python::list& new_perturbation_type_priority) {
-  settings.perturbation_type_priority = 
+  settings.perturbation_type_priority =
     to_vector<MolecularPerturbation::Type>(new_perturbation_type_priority);
 };
 
@@ -28,7 +28,7 @@ class PythonMoleculeObjective {
   python::object objective;
 
 public:
-  PythonMoleculeObjective(const python::object& objective) : 
+  PythonMoleculeObjective(const python::object& objective) :
     objective(objective) {
     if (objective.is_none() || !PyCallable_Check(objective.ptr())) {
       PyErr_SetString(PyExc_TypeError, "Expected a callable object");
@@ -60,52 +60,52 @@ void WrapMoleculeAutoCorrect() {
   boost::python::pointer_wrapper<const MolecularConstraints*>
     null_constraints (nullptr);
 
-  python::class_<MoleculeAutoCorrect::Settings>("Settings", 
+  python::class_<MoleculeAutoCorrect::Settings>("Settings",
     python::init<
-      const MoleculePerturber*, 
-      const ChemicalDictionary*, 
+      const MoleculePerturber*,
+      const ChemicalDictionary*,
       const MolecularConstraints*>((
       python::arg("perturber"),
       python::arg("dictionary"),
       python::arg("constraints") = null_constraints)))
-    
+
     .def_readwrite("perturber",
       &MoleculeAutoCorrect::Settings::perturber)
     .def_readwrite("dictionary",
       &MoleculeAutoCorrect::Settings::dictionary)
     .def_readwrite("constraints",
       &MoleculeAutoCorrect::Settings::constraints)
-    .add_property("perturbation_type_priority", 
+    .add_property("perturbation_type_priority",
       GetPerturbationTypePriority, SetPerturbationTypePriority)
     .def_readwrite("sanitize_after_expansion",
       &MoleculeAutoCorrect::Settings::sanitize_after_expansion)
-    .def_readwrite("allow_degree_change_during_valence_correction", 
+    .def_readwrite("allow_degree_change_during_valence_correction",
       &MoleculeAutoCorrect::Settings::allow_degree_change_during_valence_correction)
-    .def_readwrite("attempt_degree_correction_with_insertions", 
+    .def_readwrite("attempt_degree_correction_with_insertions",
       &MoleculeAutoCorrect::Settings::attempt_degree_correction_with_insertions)
-    .def_readwrite("attempt_bond_correction_with_atom_insertions", 
+    .def_readwrite("attempt_bond_correction_with_atom_insertions",
       &MoleculeAutoCorrect::Settings::attempt_bond_correction_with_atom_insertions)
-    .def_readwrite("attempt_environment_correction_with_atom_insertions", 
+    .def_readwrite("attempt_environment_correction_with_atom_insertions",
       &MoleculeAutoCorrect::Settings::attempt_environment_correction_with_atom_insertions)
-    .def_readwrite("constrain_z_on_dv", 
+    .def_readwrite("constrain_z_on_dv",
       &MoleculeAutoCorrect::Settings::constrain_z_on_dv)
-    .def_readwrite("constrain_q_on_dvz", 
+    .def_readwrite("constrain_q_on_dvz",
       &MoleculeAutoCorrect::Settings::constrain_q_on_dvz)
-    .def_readwrite("constrain_h_on_dvzq", 
+    .def_readwrite("constrain_h_on_dvzq",
       &MoleculeAutoCorrect::Settings::constrain_h_on_dvzq)
-    .def_readwrite("constrain_b_on_k1k2", 
+    .def_readwrite("constrain_b_on_k1k2",
       &MoleculeAutoCorrect::Settings::constrain_b_on_k1k2)
-    .def_readwrite("max_tree_size", 
+    .def_readwrite("max_tree_size",
       &MoleculeAutoCorrect::Settings::max_tree_size)
-    .def_readwrite("max_tree_depth", 
+    .def_readwrite("max_tree_depth",
       &MoleculeAutoCorrect::Settings::max_tree_depth)
-    .def_readwrite("n_solutions", 
+    .def_readwrite("n_solutions",
       &MoleculeAutoCorrect::Settings::n_solutions)
-    .def_readwrite("n_top_solutions", 
+    .def_readwrite("n_top_solutions",
       &MoleculeAutoCorrect::Settings::n_top_solutions);
 
   // Define Policy submodule.
-  std::string policy_module_name = 
+  std::string policy_module_name =
     python::extract<std::string>(python::scope().attr("__name__") + ".Policy");
   python::object policy_module (
     python::handle<>(python::borrowed(
@@ -114,19 +114,19 @@ void WrapMoleculeAutoCorrect() {
   python::scope policy_scope = policy_module;
 
   python::enum_<MoleculeAutoCorrect::Policy::Type>("Type")
-    .value("BFS", 
+    .value("BFS",
       MoleculeAutoCorrect::Policy::Type::BFS)
-    .value("Familiarity1", 
+    .value("Familiarity1",
       MoleculeAutoCorrect::Policy::Type::Familiarity1)
-    .value("Familiarity2", 
+    .value("Familiarity2",
       MoleculeAutoCorrect::Policy::Type::Familiarity2)
-    .value("DistanceNormalizedFamiliarity", 
+    .value("DistanceNormalizedFamiliarity",
       MoleculeAutoCorrect::Policy::Type::DistanceNormalizedFamiliarity)
-    .value("Astar", 
+    .value("Astar",
       MoleculeAutoCorrect::Policy::Type::Astar)
-    .value("UCT", 
+    .value("UCT",
       MoleculeAutoCorrect::Policy::Type::UCT)
-    .value("MLR", 
+    .value("MLR",
       MoleculeAutoCorrect::Policy::Type::MLR);
 
   python::scope mod_scope (module_scope);
@@ -145,7 +145,7 @@ void WrapMoleculeAutoCorrect() {
     "Result", python::no_init)
     .def_readonly("n_expansions",
       &MoleculeAutoCorrect::Result::n_expansions)
-    .add_property("top_discoveries", 
+    .add_property("top_discoveries",
       GetTopDiscoveries);
 
   python::def<

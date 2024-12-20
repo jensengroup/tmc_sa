@@ -1,8 +1,10 @@
+import argparse
 import os
 import time
-import argparse
-from rdkit import Chem
+
 import molpert as mpt
+from rdkit import Chem
+
 import MoleculeAutoCorrect as mac
 
 
@@ -116,4 +118,3 @@ def Main():
 
 if __name__ == "__main__":
     Main()
-

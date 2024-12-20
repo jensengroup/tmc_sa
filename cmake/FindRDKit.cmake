@@ -24,16 +24,16 @@ set(RDKit_FOUND FALSE)
 
 if(RDKit_ROOT)
   # Recursively search for rdkit-config.cmake and rdkit-config-version.cmake.
-  # The search is started in RDKit_ROOT. If successful find_package sets 
+  # The search is started in RDKit_ROOT. If successful find_package sets
   # RDKit_FOUND, RDKit_DIR and RDKit_INCLUDE_DIRS.
-  find_package(RDKit CONFIG 
+  find_package(RDKit CONFIG
     PATHS ${RDKit_ROOT}
     NO_DEFAULT_PATH)
 endif()
 
 # If an Anaconda environment is active check if the RDKit is installed there.
 if(NOT RDKit_FOUND AND DEFINED ENV{CONDA_PREFIX})
-  find_package(RDKit CONFIG 
+  find_package(RDKit CONFIG
     PATHS $ENV{CONDA_PREFIX}
     NO_DEFAULT_PATH)
   if(RDKit_FOUND)
@@ -52,12 +52,12 @@ if(NOT RDKit_FOUND AND DEFINED ENV{RDBASE})
 endif()
 
 if(RDKit_FOUND)
-  # The RDKit config doesn't set RDKit_LIBRARY_DIRS so we set it manually. 
+  # The RDKit config doesn't set RDKit_LIBRARY_DIRS so we set it manually.
   # We cache it because RDKit_DIR (and in turn RDKit_INCLUDE_DIRS) is cached.
-  set(RDKit_LIBRARY_DIRS ${RDKit_ROOT}/lib 
+  set(RDKit_LIBRARY_DIRS ${RDKit_ROOT}/lib
     CACHE PATH "Directory containing RDKit libraries")
   message(STATUS "Found RDKit: "
-    "${RDKit_INCLUDE_DIRS}, " 
+    "${RDKit_INCLUDE_DIRS}, "
     "${RDKit_LIBRARY_DIRS} "
     "(version ${RDKit_VERSION})")
 elseif(RDKit_FIND_REQUIRED)

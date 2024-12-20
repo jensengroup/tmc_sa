@@ -1,5 +1,5 @@
-import sqlite3
 import logging
+import sqlite3
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,8 @@ class DatabaseManager:
         self.initialize_database()
 
     def initialize_database(self):
-        """Initialize the SQLite database and create a table if it does not exist."""
+        """Initialize the SQLite database and create a table if it does not
+        exist."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         try:
@@ -32,7 +33,8 @@ class DatabaseManager:
             conn.close()
 
     def get_existing_familiarity_scores(self, smiles):
-        """Retrieve the familiarity scores for a SMILES string if they exist."""
+        """Retrieve the familiarity scores for a SMILES string if they
+        exist."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         try:
@@ -59,7 +61,7 @@ class DatabaseManager:
                 """
                 INSERT INTO familiarity_scores (smiles, familiarity1, familiarity2)
                 VALUES (?, ?, ?)
-                ON CONFLICT(smiles) DO UPDATE SET 
+                ON CONFLICT(smiles) DO UPDATE SET
                     familiarity1 = excluded.familiarity1,
                     familiarity2 = excluded.familiarity2
                 """,

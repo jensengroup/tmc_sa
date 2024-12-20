@@ -318,7 +318,7 @@ public:
     if (queue.empty()) {
       return {0, false};
     };
-    // Return the Vertex with the highest priority. Some queued vertices may no 
+    // Return the Vertex with the highest priority. Some queued vertices may no
     // longer be expandable. If that's the case remove them from the queue.
     auto [v, priority] = queue.top();
     while (!vertex_expandable[v]) {

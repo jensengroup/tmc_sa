@@ -1,13 +1,12 @@
-import os
 import argparse
-import rdkit
-from pathlib import Path
 import json
-from rdkit import Chem
-import subprocess
-import re
 import logging
-from database import DatabaseManager
+import os
+import re
+import subprocess
+from pathlib import Path
+
+from rdkit import Chem
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +81,6 @@ tm = f"[{','.join(TRANSITION_METALS)}]"
 
 
 def Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
-
     n_foreign_keys = n_foreign_atoms + n_foreign_bonds + n_foreign_environments
 
     familiarity = 1 / (n_foreign_keys + 1)
@@ -91,7 +89,6 @@ def Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
 
 
 def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
-
     n_foreign_keys = n_foreign_atoms + n_foreign_bonds + n_foreign_environments
 
     n_keys = m.GetNumAtoms() * 2 + m.GetNumBonds()
@@ -102,7 +99,6 @@ def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
 
 
 def Familiarity1_bonds(m, n_foreign_tm_bonds):
-
     print(Chem.MolToSmiles(m))
     match = m.GetSubstructMatch(Chem.MolFromSmarts(tm))
     if not match:
@@ -139,7 +135,6 @@ def run_shell(command, current_env):
 
 
 def parse_subprocess_output(command, current_env):
-
     output = run_shell(command, current_env)
 
     parsed_data = {
@@ -246,7 +241,6 @@ def ParseArgs(arg_list=None):
 
 
 def get_scores_from_output(smiles, output):
-
     logger.debug("Getting familiarity")
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
@@ -271,7 +265,6 @@ def get_scores_from_output(smiles, output):
 
 
 def get_familiarity(smiles, reference_dict=None):
-
     # Get the current environment variables
     current_env = os.environ.copy()
 
@@ -308,14 +301,14 @@ if __name__ == "__main__":
     # Reference dictionary
     reference_dict = Path("./dicts/csd_smiles_both_agree_train.dict").resolve()
     # Check if the familiarity score already exists
-    existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
-    if existing_score is not None:
-        logger.info(f"Familiarity score for SMILES already exists: {existing_score}")
+    # existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
+    # if existing_score is not None:
+    #     logger.info(f"Familiarity score for SMILES already exists: {existing_score}")
 
-    else:
-        # Compute or retrieve familiarity score
-        output = get_familiarity(args.smiles, reference_dict=str(reference_dict))
-        logger.debug(json.dumps(output, indent=4))
+    # else:
+    # Compute or retrieve familiarity score
+    output = get_familiarity(args.smiles, reference_dict=str(reference_dict))
+    logger.debug(json.dumps(output, indent=4))
 
-        # Store the familiarity score in the database
-        # db_manager.store_familiarity_scores(args.smiles, fam1, fam2)
+    # Store the familiarity score in the database
+    # db_manager.store_familiarity_scores(args.smiles, fam1, fam2)

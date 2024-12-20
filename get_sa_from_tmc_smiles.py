@@ -103,6 +103,10 @@ def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
 
 def Familiarity1_bonds(m, n_foreign_tm_bonds):
 
+    print(Chem.MolToSmiles(m))
+    match = m.GetSubstructMatch(Chem.MolFromSmarts(tm))
+    if not match:
+        return None
     neighbors = m.GetAtomWithIdx(
         m.GetSubstructMatch(Chem.MolFromSmarts(tm))[0]
     ).GetNeighbors()
@@ -122,6 +126,7 @@ def run_shell(command, current_env):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        timeout=10,
     )
 
     output = result.stdout
@@ -216,7 +221,6 @@ def parse_subprocess_output(command, current_env):
             count += 1
     parsed_data["foreign_tm_bonds"] = count
 
-    logger.debug(f"Parsed subprocess output: {parsed_data}")
     return parsed_data
 
 
@@ -238,41 +242,12 @@ def ParseArgs(arg_list=None):
         default="familiarity_scores.db",
         help="Path to the SQLite database file",
     )
-    parser.add_argument(
-        "--score_type",
-        type=str,
-        default="Familiarity1",
-        choices=["Familiarity1", "Familiarity1_bonds", "Familiarity2"],
-        help="Path to the SQLite database file",
-    )
     return parser.parse_args(arg_list)
 
 
-def get_familiarity(smiles, reference_dict=None):
-
-    # Get the current environment variables
-    current_env = os.environ.copy()
-
-    # Add/Modify the environment variable
-    # current_env["MOLECULE_AUTO_CORRECT"] = "/home/magstr/git/MoleculeAutoCorrect"
-    # current_env["MOLPERT"] = "/home/magstr/git/Molpert"
-
-    # Define the command
-    command = [
-        f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/HighlightMoleculeErrors",
-        reference_dict,
-        smiles,
-        "/tmp/image.svg",
-    ]
-    logger.debug(f"Executing command for SMILES: {smiles}")
-
-    # Run the subprocess
-    output = parse_subprocess_output(command, current_env)
-    # logger.debug(pformat(output))
-    logger.debug(json.dumps(output, indent=4))
+def get_scores_from_output(smiles, output):
 
     logger.debug("Getting familiarity")
-
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
     n_foreign_environments = int(len(output["foreign_atomic_environments"]))
@@ -288,17 +263,47 @@ def get_familiarity(smiles, reference_dict=None):
         f"Familiarity1: {fam1} | Familiarity2: {fam2} | Familiarity_bonds: {fam3}"
     )
 
-    return fam1, fam2, fam3
+    output["familiarity1"] = fam1
+    output["familiarity2"] = fam2
+    output["familiarity3"] = fam3
+
+    return output
+
+
+def get_familiarity(smiles, reference_dict=None):
+
+    # Get the current environment variables
+    current_env = os.environ.copy()
+
+    # Define the command
+    command = [
+        f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/HighlightMoleculeErrors",
+        reference_dict,
+        smiles,
+        "/tmp/image.svg",
+    ]
+    logger.debug(f"Executing command for SMILES: {smiles}")
+
+    # Run the subprocess
+    output = parse_subprocess_output(command, current_env)
+    logger.debug(json.dumps(output, indent=4))
+
+    output = get_scores_from_output(smiles, output)
+
+    return output
 
 
 if __name__ == "__main__":
     args = ParseArgs()
     # Initialize logging
-    logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
-    logger.setLevel(getattr(logging, args.log_level))
+    if args.log_level == "DISABLE":
+        logging.disable(logging.CRITICAL)
+    else:
+        logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
+        logger.setLevel(getattr(logging, args.log_level))
 
     # Initialize database manager
-    db_manager = DatabaseManager(args.db_path)
+    # db_manager = DatabaseManager(args.db_path)
 
     # Reference dictionary
     reference_dict = Path("./dicts/csd_smiles_both_agree_train.dict").resolve()
@@ -309,12 +314,8 @@ if __name__ == "__main__":
 
     else:
         # Compute or retrieve familiarity score
-        fam1, fam2, fam3 = get_familiarity(
-            args.smiles, reference_dict=str(reference_dict)
-        )
-        logger.debug(
-            f"Familiarity1: {fam1} | Familiarity2: {fam2} | Familiarity_bonds: {fam3}"
-        )
+        output = get_familiarity(args.smiles, reference_dict=str(reference_dict))
+        logger.debug(json.dumps(output, indent=4))
 
         # Store the familiarity score in the database
-        db_manager.store_familiarity_scores(args.smiles, fam1, fam2)
+        # db_manager.store_familiarity_scores(args.smiles, fam1, fam2)

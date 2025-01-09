@@ -22,8 +22,8 @@ def ParseArgs():
         default="MLR",
         choices=[
             "BFS",
-            "Familiarity1",
-            "Familiarity2",
+            "familiarity1",
+            "familiarity2",
             "DistanceNormalizedFamiliarity",
             "UCT",
             "Astar",
@@ -83,8 +83,8 @@ def Main():
 
     policy_types = {
         "BFS": mac.Policy.Type.BFS,
-        "Familiarity1": mac.Policy.Type.Familiarity1,
-        "Familiarity2": mac.Policy.Type.Familiarity2,
+        "familiarity1": mac.Policy.Type.Familiarity1,
+        "familiarity2": mac.Policy.Type.familiarity2,
         "DistanceNormalizedFamiliarity": mac.Policy.Type.DistanceNormalizedFamiliarity,
         "UCT": mac.Policy.Type.UCT,
         "Astar": mac.Policy.Type.Astar,

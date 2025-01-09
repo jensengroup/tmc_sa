@@ -10,77 +10,21 @@ from rdkit import Chem
 
 logger = logging.getLogger(__name__)
 
-TRANSITION_METALS_NUM = [
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    57,
-    28,
-    29,
-    30,
-    39,
-    40,
-    41,
-    42,
-    43,
-    44,
-    45,
-    46,
-    47,
-    48,
-    71,
-    72,
-    73,
-    74,
-    75,
-    76,
-    77,
-    78,
-    79,
-    80,
+# fmt: off
+TRANSITION_METALS = ["Sc","Ti","V","Cr","Mn","Fe","Co","La","Ni","Cu","Zn",
+                     "Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","Lu",
+                     "Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg",
 ]
 
-TRANSITION_METALS = [
-    "Sc",
-    "Ti",
-    "V",
-    "Cr",
-    "Mn",
-    "Fe",
-    "Co",
-    "La",
-    "Ni",
-    "Cu",
-    "Zn",
-    "Y",
-    "Zr",
-    "Nb",
-    "Mo",
-    "Tc",
-    "Ru",
-    "Rh",
-    "Pd",
-    "Ag",
-    "Cd",
-    "Lu",
-    "Hf",
-    "Ta",
-    "W",
-    "Re",
-    "Os",
-    "Ir",
-    "Pt",
-    "Au",
-    "Hg",
+TRANSITION_METALS_NUM = [21,22,23,24,25,26,27,57,28,29,30,39,40,41,
+                         42,43,44,45,46,47,48,71,72,73,74,75,76,77,78,79,80,
 ]
+# fmt: on
+
 tm = f"[{','.join(TRANSITION_METALS)}]"
 
 
-def Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
+def familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     n_foreign_keys = n_foreign_atoms + n_foreign_bonds + n_foreign_environments
 
     familiarity = 1 / (n_foreign_keys + 1)
@@ -88,7 +32,7 @@ def Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     return familiarity
 
 
-def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
+def familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     n_foreign_keys = n_foreign_atoms + n_foreign_bonds + n_foreign_environments
 
     n_keys = m.GetNumAtoms() * 2 + m.GetNumBonds()
@@ -98,10 +42,10 @@ def Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     return familiarity
 
 
-def Familiarity1_bonds(m, n_foreign_tm_bonds):
-    print(Chem.MolToSmiles(m))
+def familiarity_tm_bonds(m, n_foreign_tm_bonds):
     match = m.GetSubstructMatch(Chem.MolFromSmarts(tm))
     if not match:
+        logger.warning(f"No TM metal for this SMILES: {Chem.MolToSmiles(m)}")
         return None
     neighbors = m.GetAtomWithIdx(
         m.GetSubstructMatch(Chem.MolFromSmarts(tm))[0]
@@ -249,12 +193,12 @@ def get_scores_from_output(smiles, output):
 
     m = Chem.MolFromSmiles(smiles, sanitize=False)
 
-    fam1 = Familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
-    fam2 = Familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
-    fam3 = Familiarity1_bonds(m, n_foreign_tm_bonds)
+    fam1 = familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
+    fam2 = familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
+    fam3 = familiarity_tm_bonds(m, n_foreign_tm_bonds)
 
     logger.debug(
-        f"Familiarity1: {fam1} | Familiarity2: {fam2} | Familiarity_bonds: {fam3}"
+        f"familiarity1: {fam1} | familiarity2: {fam2} | Familiarity_bonds: {fam3}"
     )
 
     output["familiarity1"] = fam1
@@ -271,7 +215,7 @@ def get_familiarity(smiles, reference_dict=None):
     # Define the command
     command = [
         f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/HighlightMoleculeErrors",
-        reference_dict,
+        str(reference_dict),
         smiles,
         "/tmp/image.svg",
     ]

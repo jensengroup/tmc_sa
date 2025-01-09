@@ -29,6 +29,11 @@ def ParseArgs(arg_list=None):
         help="Output dict name",
     )
     parser.add_argument(
+        "--environment_radius",
+        type=int,
+        help="Radius of the environments used in the fragmentation of the TMC atomic environments",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Set debug mode",
@@ -49,7 +54,7 @@ def get_dict():
         f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/MakeChemicalDictionary",
         f"{args.smiles_data}",
         f"{args.dict_name}",
-        "1",
+        f"{args.environment_radius}",  # Atomic enironment radius
     ]
 
     # Run the subprocess
@@ -66,6 +71,7 @@ def get_dict():
     logger.info(f"Loaded data: \n {smiles.head(5).to_string()}")
 
     if args.debug:
+        logger.info("Running in debug mode. Loading the first 200 SMILES only.")
         smiles = smiles[0:200]
 
     mols = [Chem.MolFromSmiles(smi) for smi in smiles if smi]

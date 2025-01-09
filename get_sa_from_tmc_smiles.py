@@ -181,6 +181,13 @@ def ParseArgs(arg_list=None):
         default="familiarity_scores.db",
         help="Path to the SQLite database file",
     )
+    parser.add_argument(
+        "--reference_dict",
+        type=Path,
+        default="./dicts/csd_smiles_both_agree_train.dict",
+        help="Path to the TMC dict",
+    )
+
     return parser.parse_args(arg_list)
 
 
@@ -243,7 +250,7 @@ if __name__ == "__main__":
     # db_manager = DatabaseManager(args.db_path)
 
     # Reference dictionary
-    reference_dict = Path("./dicts/csd_smiles_both_agree_train.dict").resolve()
+    reference_dict = args.reference_dict.resolve()
     # Check if the familiarity score already exists
     # existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
     # if existing_score is not None:
@@ -252,7 +259,8 @@ if __name__ == "__main__":
     # else:
     # Compute or retrieve familiarity score
     output = get_familiarity(args.smiles, reference_dict=str(reference_dict))
-    logger.debug(json.dumps(output, indent=4))
+    logger.info("Printing the familiarity output:")
+    logger.info(json.dumps(output, indent=4))
 
     # Store the familiarity score in the database
     # db_manager.store_familiarity_scores(args.smiles, fam1, fam2)

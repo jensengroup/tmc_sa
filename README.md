@@ -22,54 +22,74 @@ Ensure the following dependencies are installed:
 
 The following instructions are for GNU+Linux. For alternative operating systems you'll have to adapt these commands slightly.
 
-First install the [env.yml](env.yml) file into a conda env.
-Then install MoleculeAutoCorrect and Molpert.
+*IMPORTANT:*
+The MoleculeAutoCorrect and Molpert repos depend on the source C++ code from RDKit. In newer versions of RDKit, certain header files have been removed from the conda install.
+Therefore, these repos need to be compiled in a conda environment whith RDKit version X.
 
-Then run the install script:
+Once the binaries from the MoleculeAutoCorrect repo has been compiled, these binaries can be called from any conda env. E.g a conda env that uses an updated version of RDKit.
+
+To do this, first install the conda env: [env.yml](env.yml)
+
+```shell
+conda env create --file ./env.yml
+```
+
+Then install MoleculeAutoCorrect and Molpert by running the following:
 
 ```shell
 ./install.sh
 ```
 
-To be able to import the library from Python add `${MOLECULE_AUTO_CORRECT}/lib` and `${MOLPERT}/lib` to your `${PYTHONPATH}`. Consider doing so in your `bash_profile` file. Otherwise you'll have to manually extend `${PYTHONPATH}` everytime you open a new shell.
+To be able to import the library from Python add `${MOLECULE_AUTO_CORRECT}/lib` and `${MOLPERT}/lib` to your `${PYTHONPATH}`. Consider doing so in your `.bash_profile` file. Otherwise you'll have to manually extend `${PYTHONPATH}` everytime you open a new shell.
 
 ```shell
 export PYTHONPATH="${PYTHONPATH}:${MOLECULE_AUTO_CORRECT}/lib"
 export PYTHONPATH="${PYTHONPATH}:${MOLPERT}/lib"
 ```
 
-### Troubleshooting
+Now you should be able to run the commands given in [Quick start](#quick-start).
 
-CMake will try to find the rest of the dependencies for you. To avoid problems ensure you build the software with the same Boost and Python versions that you used to build Molpert and the RDKit. If CMake finds a different Boost or Python installation you'll need to point it to the correct one, as described [here](https://cmake.org/cmake/help/latest/module/FindBoost.html) and [here](https://cmake.org/cmake/help/latest/module/FindPython.html).
-
-CMake will search for the RDKit in the active Anaconda environment (if you have one) and at `${RDBASE}` if set. If neither of these are the case you need to specify the path to the RDKit yourself. Replace the above CMake command with the one below, substituting the `<placeholder/path>` with your paths.
-
-```shell
-cmake -DRDKit_ROOT=<path/to/rdkit> -DMolpert_INCLUDE_DIRS=<path/to/molpert> ..
-```
-
-# Quick start
+## Quick start
 
 Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `tmc.smi`). Then use this library to create a dictionary of chemical features (here `tmc.dict`). You can specify the radius of circular atomic environments as the last argument (here `1`).
 
+Creating the tmc.dict by calling the MoleculeAutoCorrect binaries with Python:
+NB! When creating the dict, it is important that you use the conda env installed above ([env.yml](env.yml)). Otherwise you will get an error. After the .dict has been created you can switch to an environment with a newer version of RDKit.
+
 ```shell
-bin/MakeChemicalDictionary tmc.smi tmc.dict 1
+python ./create_chemical_dictionary_from_smiles.py --smiles_data data/chembl.smi --dict_name ./dicts/tmc.dict
 ```
 
-Given the SMILES string of a TMC `CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC` you can inspect if it has any issues:
+Use the tmc.dict to get familiarity scores for a given TMC SMILES:
+
+```shell
+python ./get_sa_from_tmc_smiles.py --smiles "CN(C)C=O->[Ni+2]123<-[N-](C(=O)CN->1(CC(=O)[N-]->2c1ccccc1)CC(=O)[N-]->3c1ccccc1)c1ccccc1" --reference_dict ./dicts/tmc.dict
+```
+
+You can also inspect the output of HighlightMoleculeErrors directly running the binary:
 
 ```shell
 bin/HighlightMoleculeErrors tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" molecule_errors.svg
 ```
 
-If it has issues you can proceed to try correcting them:
+<!-- If it has issues you can proceed to try correcting them: -->
 
-```shell
-python AutoCorrectMolecule.py tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC"
-```
+<!---->
 
-You can experiment with different settings, including tree policies. Access the `--help` for more information.
+<!-- ```shell -->
 
-```shell
-python AutoCorrectMolecule.py --help
-```
+<!-- python AutoCorrectMolecule.py tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" -->
+
+<!-- ``` -->
+
+<!---->
+
+<!-- You can experiment with different settings, including tree policies. Access the `--help` for more information. -->
+
+<!---->
+
+<!-- ```shell -->
+
+<!-- python AutoCorrectMolecule.py --help -->
+
+<!-- ``` -->

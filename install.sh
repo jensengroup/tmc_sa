@@ -3,7 +3,10 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Clone the repository
+export MOLPERT="$(pwd)/Molpert"
+export MOLECULE_AUTO_CORRECT="$(pwd)"
+
+# Clone the Molpert repository dependency
 git clone https://github.com/AlanKerstjens/Molpert.git
 
 # Install molpert

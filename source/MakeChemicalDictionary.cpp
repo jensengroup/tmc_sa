@@ -24,16 +24,16 @@ int main(int argc, char *argv[]) {
 
   ChemicalDictionary dictionary(environment_radius);
 
-  std::cout << "Creating ChemicalDictionary with circular atomic environments "
-            << "of radius " << environment_radius << std::endl;
+  std::cout
+      << "Creating ChemicalDictionary object with circular atomic environments."
+      << "This object contains only the first entry of the given .smi file. "
+         "Any remaining TMC SMILES should be added using the Python "
+         "functionality."
+      << "Radius of environment: " << environment_radius << std::endl;
 
   RDKit::ROMOL_SPTR molecule;
   int iteration = 1; // Counter for iterations
   while (!supplier.atEnd()) {
-    if (iteration == 2) {
-      std::cout << "Breaking after 1 iteration" << std::endl;
-      break;
-    }
     std::cout << "At iteration" << iteration << std::endl;
     // Check if the current iteration should be skipped
     // if (skipIterations.find(iteration) != skipIterations.end()) {
@@ -59,7 +59,8 @@ int main(int argc, char *argv[]) {
     molecule.reset(supplier.next());
     // std::cout << "Just reset" << iteration << std::endl;
     if (!molecule) {
-      std::cout << "No mol obtained from the smiles" << iteration << std::endl;
+      std::cout << "No mol obtained from the smiles at line " << iteration
+                << std::endl;
       continue;
     };
     if (kekulize) {
@@ -73,6 +74,16 @@ int main(int argc, char *argv[]) {
       dictionary.AddMolecule(*molecule);
     };
 
+    // We break as soon as we have molecule to create a single entry dict at the
+    // c++ level. The current c++ implementation can not handle the complexity
+    // of TMC fragments memory wise. This single entry dict can be loaded in
+    // Python where the memory issue is not present.
+    if (molecule) {
+      std::cout
+          << "Breaking after 1 iteration. Add the remaining SMILES with Python"
+          << std::endl;
+      break;
+    }
     iteration++;
   };
   dictionary.BuildPartialKeyDictionaries();

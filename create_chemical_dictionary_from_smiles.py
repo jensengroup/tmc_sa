@@ -20,18 +20,21 @@ def ParseArgs(arg_list=None):
         "--smiles_data",
         type=str,
         default=None,
+        required=True,
         help="Path to .smi file",
     )
     parser.add_argument(
         "--dict_name",
         type=str,
         default=None,
+        required=True,
         help="Output dict name",
     )
     parser.add_argument(
         "--environment_radius",
         type=int,
         help="Radius of the environments used in the fragmentation of the TMC atomic environments",
+        default=1,
     )
     parser.add_argument(
         "--debug",
@@ -63,7 +66,11 @@ def get_dict():
     if "Error" in output:
         logger.error("Could not create dictionary")
         return
+    logger.info(
+        "Succesfully created single entry dict. Adding remaning entries in Python."
+    )
 
+    logger.info(f"Loading the single entry dict: {args.dict_name}")
     dictionary = mac.ChemicalDictionary(args.dict_name)
 
     # Get mols from smiles data
@@ -71,8 +78,9 @@ def get_dict():
     logger.info(f"Loaded data: \n {smiles.head(5).to_string()}")
 
     if args.debug:
-        logger.info("Running in debug mode. Loading the first 200 SMILES only.")
+        logger.info("Running in debug mode. Loading up to the first 200 SMILES")
         smiles = smiles[0:200]
+        logger.info(f"{len(smiles)} SMILES loaded")
 
     mols = [Chem.MolFromSmiles(smi) for smi in smiles if smi]
 
@@ -80,8 +88,8 @@ def get_dict():
 
     start = time.time()
     for i, mol in enumerate(mols[1::]):  # We dont have to add the first entry again
-        if i % 10000 == 0:
-            logger.info(f"Processed {i} mols")
+        if i % 10000 == 1:
+            logger.info(f"Processed {i} of {len(mols)} mols")
         if not mol:
             continue
         dictionary.AddMolecule(mol)

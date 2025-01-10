@@ -24,11 +24,11 @@ The following instructions are for GNU+Linux. For alternative operating systems 
 
 *IMPORTANT:*
 The MoleculeAutoCorrect and Molpert repos depend on the source C++ code from RDKit. In newer versions of RDKit, certain header files have been removed from the conda install.
-Therefore, these repos need to be compiled in a conda environment whith RDKit version X.
+Therefore, these repos need to be compiled in a conda environment with RDKit version 2022.09.5.
 
 Once the binaries from the MoleculeAutoCorrect repo has been compiled, these binaries can be called from any conda env. E.g a conda env that uses an updated version of RDKit.
 
-To do this, first install the conda env: [env.yml](env.yml)
+To get started, first install the conda env: [env.yml](env.yml)
 
 ```shell
 conda env create --file ./env.yml
@@ -51,13 +51,15 @@ Now you should be able to run the commands given in [Quick start](#quick-start).
 
 ## Quick start
 
+We provide python wrapper functions that call the compiled binaries from MoleculeAutoCorrect.
+
 Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `tmc.smi`). Then use this library to create a dictionary of chemical features (here `tmc.dict`). You can specify the radius of circular atomic environments as the last argument (here `1`).
 
-Creating the tmc.dict by calling the MoleculeAutoCorrect binaries with Python:
+Creating the tmc.dict by calling the MoleculeAutoCorrect binaries with Python using the scripts highlighted below:
 NB! When creating the dict, it is important that you use the conda env installed above ([env.yml](env.yml)). Otherwise you will get an error. After the .dict has been created you can switch to an environment with a newer version of RDKit.
 
 ```shell
-python ./create_chemical_dictionary_from_smiles.py --smiles_data data/chembl.smi --dict_name ./dicts/tmc.dict
+python ./create_chemical_dictionary_from_smiles.py --smiles_data ./data/tmc.smi --dict_name ./dicts/tmc.dict
 ```
 
 Use the tmc.dict to get familiarity scores for a given TMC SMILES:
@@ -69,8 +71,11 @@ python ./get_sa_from_tmc_smiles.py --smiles "CN(C)C=O->[Ni+2]123<-[N-](C(=O)CN->
 You can also inspect the output of HighlightMoleculeErrors directly running the binary:
 
 ```shell
-bin/HighlightMoleculeErrors tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" molecule_errors.svg
+bin/HighlightMoleculeErrors ./dicts/tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" molecule_errors.svg
 ```
+
+`get_sa_from_tmc_smiles` contains the `get_familiarity` function which returns the calculated familiarities. This function can be imported in other scripts and then used
+as an SA score calculator.
 
 <!-- If it has issues you can proceed to try correcting them: -->
 

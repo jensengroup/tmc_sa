@@ -25,8 +25,9 @@ int main(int argc, char *argv[]) {
   ChemicalDictionary dictionary(environment_radius);
 
   std::cout
-      << "Creating ChemicalDictionary object with circular atomic environments."
-      << "This object contains only the first entry of the given .smi file. "
+      << "Creating ChemicalDictionary object with circular atomic "
+         "environments.\n"
+         "This object contains only the first entry of the given .smi file.\n"
          "Any remaining TMC SMILES should be added using the Python "
          "functionality."
       << "Radius of environment: " << environment_radius << std::endl;
@@ -34,33 +35,11 @@ int main(int argc, char *argv[]) {
   RDKit::ROMOL_SPTR molecule;
   int iteration = 1; // Counter for iterations
   while (!supplier.atEnd()) {
-    std::cout << "At iteration" << iteration << std::endl;
-    // Check if the current iteration should be skipped
-    // if (skipIterations.find(iteration) != skipIterations.end()) {
-    //   std::cout << "Skipping iteration " << iteration << std::endl;
-    //   iteration++;
-    //   continue; // Skip this iteration
-    // }
-
-    // std::cout << "Dictionary size at iteration " << iteration << ": "
-    //       << dictionary.size() << std::endl;
-
-    // if (iteration % 4000 == 0) {
-    //     std::ostringstream filename;
-    //     filename << output_file_path << "_iter_" << iteration << ".dict";
-    //     dictionary.Save(filename.str());
-    //     ChemicalDictionary dictionary(environment_radius);
-    //   // dictionary.Save(output_file_path);
-    // };
-
-    // supplier.next();
-    // RDKit::ROMOL_SPTR molecule;
-    // delete &molecule;
+    std::cout << "At iteration " << iteration << std::endl;
     molecule.reset(supplier.next());
-    // std::cout << "Just reset" << iteration << std::endl;
     if (!molecule) {
       std::cout << "No mol obtained from the smiles at line " << iteration
-                << std::endl;
+                << " . Checking next molecule" << std::endl;
       continue;
     };
     if (kekulize) {

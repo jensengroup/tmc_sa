@@ -23,3 +23,9 @@ cmake -DMolpert_INCLUDE_DIRS="${MOLPERT}/source" ..
 
 # Build and install MoleculeAutoCorrect
 make install
+
+echo "Adding repos to python path"
+export PYTHONPATH="${PYTHONPATH}:${MOLECULE_AUTO_CORRECT}/lib"
+export PYTHONPATH="${PYTHONPATH}:${MOLPERT}/lib"
+
+echo "Installation complete"

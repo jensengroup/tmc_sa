@@ -88,11 +88,12 @@ def get_dict():
 
     start = time.time()
     for i, mol in enumerate(mols[1::]):  # We dont have to add the first entry again
-        if i % 10000 == 1:
+        if i % 1000 == 1:
             logger.info(f"Processed {i} of {len(mols)} mols")
         if not mol:
             continue
         dictionary.AddMolecule(mol)
+    logger.info(f"Processed all {len(mols)}")
     end = time.time()
 
     dictionary.number_of_molecules = len(mols)

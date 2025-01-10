@@ -25,17 +25,18 @@ int main(int argc, char *argv[]) {
   ChemicalDictionary dictionary(environment_radius);
 
   std::cout
-      << "Creating ChemicalDictionary object with circular atomic "
-         "environments.\n"
-         "This object contains only the first entry of the given .smi file.\n"
+      << "Creating ChemicalDictionary object with circular atomic (radius "
+      << environment_radius
+      << "). This object contains only the first entry of the given .smi "
+         "file.\n"
          "Any remaining TMC SMILES should be added using the Python "
          "functionality."
-      << "Radius of environment: " << environment_radius << std::endl;
+      << " Radius of environment: " << environment_radius << std::endl;
 
   RDKit::ROMOL_SPTR molecule;
   int iteration = 1; // Counter for iterations
   while (!supplier.atEnd()) {
-    std::cout << "At iteration " << iteration << std::endl;
+    std::cout << "Loading molecule " << iteration << std::endl;
     molecule.reset(supplier.next());
     if (!molecule) {
       std::cout << "No mol obtained from the smiles at line " << iteration

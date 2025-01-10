@@ -1,4 +1,4 @@
-# About
+# TMC_SA
 
 SA like score for TMCs.
 
@@ -6,19 +6,9 @@ A virtual library of reference correct TMCs is used to build a dictionary of all
 
 Based on work by:
 [Kerstjens, A., De Winter, H. Molecule auto-correction to facilitate molecular design. J Comput Aided Mol Des 38, 10 (2024).](https://doi.org/10.1007/s10822-024-00549-1)
+[MoleculeAutoCorrect](https://github.com/AlanKerstjens/MoleculeAutoCorrect)
 
 # Installation
-
-### Prerequisites
-
-Ensure the following dependencies are installed:
-
-- [RDKit](https://rdkit.org/)
-- [Molpert](https://github.com/AlanKerstjens/Molpert)
-- [Boost](https://www.boost.org/). You already have this if you installed the RDKit. If you'd like to build the Python bindings make sure Boost.Python is installed.
-- [CMake](https://cmake.org/)
-
-### Instructions
 
 The following instructions are for GNU+Linux. For alternative operating systems you'll have to adapt these commands slightly.
 
@@ -53,13 +43,13 @@ Now you should be able to run the commands given in [Quick start](#quick-start).
 
 We provide python wrapper functions that call the compiled binaries from MoleculeAutoCorrect.
 
-Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `tmc.smi`). Then use this library to create a dictionary of chemical features (here `tmc.dict`). You can specify the radius of circular atomic environments as the last argument (here `1`).
+Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `tmc.smi`). Then use this library to create a dictionary of chemical features (here `tmc.dict`). You can specify the radius of circular atomic environments using the --environment_radius argument (here `1`).
 
 Creating the tmc.dict by calling the MoleculeAutoCorrect binaries with Python using the scripts highlighted below:
 NB! When creating the dict, it is important that you use the conda env installed above ([env.yml](env.yml)). Otherwise you will get an error. After the .dict has been created you can switch to an environment with a newer version of RDKit.
 
 ```shell
-python ./create_chemical_dictionary_from_smiles.py --smiles_data ./data/tmc.smi --dict_name ./dicts/tmc.dict
+python ./create_chemical_dictionary_from_smiles.py --smiles_data ./data/tmc.smi --dict_name ./dicts/tmc.dict --environment_radius 1
 ```
 
 Use the tmc.dict to get familiarity scores for a given TMC SMILES:

@@ -228,6 +228,15 @@ def get_scores_from_output(smiles, output):
 
 
 def get_familiarity(smiles, reference_dict=None):
+    """Calculate familiarity scores for a given TMC SMILES.
+
+    Args:
+        smiles (str): Input TMC SMILES
+        reference_dict (str): Path to the TMC reference dict
+
+    Returns:
+        output (dict): Dictionary with the calulated familiarities and the parsed output from the MOLECULE_AUTO_CORRECT binary
+    """
     # Get the current environment variables
     current_env = os.environ.copy()
 
@@ -236,7 +245,7 @@ def get_familiarity(smiles, reference_dict=None):
         f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/HighlightMoleculeErrors",
         str(reference_dict),
         smiles,
-        "/tmp/image.svg",
+        "/tmp/image.svg",  # This file will contain an image of the molecule with foreign parts highlighted
     ]
     logger.debug(f"Executing command for SMILES: {smiles}")
 
@@ -244,6 +253,7 @@ def get_familiarity(smiles, reference_dict=None):
     output = parse_subprocess_output(command, current_env)
     logger.debug(json.dumps(output, indent=4))
 
+    # Add familiarity scores to output
     output = get_scores_from_output(smiles, output)
 
     return output

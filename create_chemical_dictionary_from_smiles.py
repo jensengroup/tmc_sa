@@ -14,14 +14,15 @@ logger = logging.getLogger(__name__)
 
 def ParseArgs(arg_list=None):
     parser = argparse.ArgumentParser(
-        description="Create chemical dictionary", fromfile_prefix_chars="+"
+        description="Create chemical dictionary for TMC SMILES for use in TMC SA evaluators.",
+        fromfile_prefix_chars="+",
     )
     parser.add_argument(
         "--smiles_data",
         type=str,
         default=None,
         required=True,
-        help="Path to .smi file",
+        help="Path to a .smi file",
     )
     parser.add_argument(
         "--dict_name",

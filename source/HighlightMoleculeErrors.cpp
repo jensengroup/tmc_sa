@@ -179,50 +179,50 @@ int main(int argc, char *argv[]) {
     };
   };
 
-  // RDKit::DrawColour base_colour(1.0, 0.5, 0.5, 1.0); // RGBA
-  // double alpha_slope = (1.0 - 0.1) / (max_error - min_error);
-  //
-  // std::vector<int> highlighted_atom_idxs;
-  // std::map<int, RDKit::DrawColour> atom_highlight_colours;
-  // for (std::size_t atom_idx = 0; atom_idx < n_atoms; ++atom_idx) {
-  //   unsigned error = atom_errors[atom_idx];
-  //   if (!error) {
-  //     continue;
-  //   };
-  //   highlighted_atom_idxs.push_back(atom_idx);
-  //   RDKit::DrawColour colour(base_colour);
-  //   colour.a = 1.0 - (max_error - error) * alpha_slope;
-  //   atom_highlight_colours.emplace(atom_idx, std::move(colour));
-  // };
-  //
-  // std::vector<int> highlighted_bond_idxs;
-  // std::map<int, RDKit::DrawColour> bond_highlight_colours;
-  // for (std::size_t bond_idx = 0; bond_idx < n_bonds; ++bond_idx) {
-  //   unsigned error = bond_errors[bond_idx];
-  //   if (!error) {
-  //     continue;
-  //   };
-  //   highlighted_bond_idxs.push_back(bond_idx);
-  //   RDKit::DrawColour colour(base_colour);
-  //   colour.a = 1.0 - (max_error - error) * alpha_slope;
-  //   bond_highlight_colours.emplace(bond_idx, std::move(colour));
-  // };
-  //
-  // std::ofstream svg_stream(output_svg_path);
-  // RDDepict::compute2DCoords(*molecule);
-  // RDKit::MolDraw2DSVG drawer(600, 600, svg_stream);
-  // if (verbose) {
-  //   RDKit::MolDrawOptions &draw_options = drawer.drawOptions();
-  //   draw_options.addAtomIndices = true;
-  //   draw_options.addBondIndices = true;
-  // };
-  // drawer.drawMolecule(*molecule, "", &highlighted_atom_idxs,
-  //                     &highlighted_bond_idxs, &atom_highlight_colours,
-  //                     &bond_highlight_colours);
-  // drawer.finishDrawing();
-  // svg_stream.close();
-  //
-  // std::cout << "Errors were highlighted in " << output_svg_path << std::endl;
+  RDKit::DrawColour base_colour(1.0, 0.5, 0.5, 1.0); // RGBA
+  double alpha_slope = (1.0 - 0.1) / (max_error - min_error);
+
+  std::vector<int> highlighted_atom_idxs;
+  std::map<int, RDKit::DrawColour> atom_highlight_colours;
+  for (std::size_t atom_idx = 0; atom_idx < n_atoms; ++atom_idx) {
+    unsigned error = atom_errors[atom_idx];
+    if (!error) {
+      continue;
+    };
+    highlighted_atom_idxs.push_back(atom_idx);
+    RDKit::DrawColour colour(base_colour);
+    colour.a = 1.0 - (max_error - error) * alpha_slope;
+    atom_highlight_colours.emplace(atom_idx, std::move(colour));
+  };
+
+  std::vector<int> highlighted_bond_idxs;
+  std::map<int, RDKit::DrawColour> bond_highlight_colours;
+  for (std::size_t bond_idx = 0; bond_idx < n_bonds; ++bond_idx) {
+    unsigned error = bond_errors[bond_idx];
+    if (!error) {
+      continue;
+    };
+    highlighted_bond_idxs.push_back(bond_idx);
+    RDKit::DrawColour colour(base_colour);
+    colour.a = 1.0 - (max_error - error) * alpha_slope;
+    bond_highlight_colours.emplace(bond_idx, std::move(colour));
+  };
+
+  std::ofstream svg_stream(output_svg_path);
+  RDDepict::compute2DCoords(*molecule);
+  RDKit::MolDraw2DSVG drawer(600, 600, svg_stream);
+  if (verbose) {
+    RDKit::MolDrawOptions &draw_options = drawer.drawOptions();
+    draw_options.addAtomIndices = true;
+    draw_options.addBondIndices = true;
+  };
+  drawer.drawMolecule(*molecule, "", &highlighted_atom_idxs,
+                      &highlighted_bond_idxs, &atom_highlight_colours,
+                      &bond_highlight_colours);
+  drawer.finishDrawing();
+  svg_stream.close();
+
+  std::cout << "Errors were highlighted in " << output_svg_path << std::endl;
 
   return 0;
 };

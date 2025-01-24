@@ -7,20 +7,30 @@ A virtual library of reference correct TMCs is used to build a dictionary of all
 Based on work by:
 [Kerstjens, A., De Winter, H. Molecule auto-correction to facilitate molecular design. J Comput Aided Mol Des 38, 10 (2024).](https://doi.org/10.1007/s10822-024-00549-1).
 
+## Requirements
+
+- RDKit 2022.09.5
+- gcc / g++ > 10.*
+
+The MoleculeAutoCorrect and Molpert repos depend on the source C++ code from RDKit. In newer versions of RDKit, certain header files have been removed from the conda install.
+Therefore, these repos need to be compiled in a conda environment with RDKit version 2022.09.5.
+Once the binaries from the MoleculeAutoCorrect repo has been compiled, these binaries can be called from any conda env. E.g a conda env that uses an updated version of RDKit.
+
+Additionally, the gcc and g++ compiler versions need to be above version 10. Otherwise you will get C++ syntax compiler errors.
+
 # Installation
 
 The following instructions are for GNU+Linux. For alternative operating systems you'll have to adapt these commands slightly.
-
-*IMPORTANT:*
-The MoleculeAutoCorrect and Molpert repos depend on the source C++ code from RDKit. In newer versions of RDKit, certain header files have been removed from the conda install.
-Therefore, these repos need to be compiled in a conda environment with RDKit version 2022.09.5.
-
-Once the binaries from the MoleculeAutoCorrect repo has been compiled, these binaries can be called from any conda env. E.g a conda env that uses an updated version of RDKit.
 
 To get started, first install the conda env: [env.yml](env.yml)
 
 ```shell
 conda env create --file ./env.yml
+```
+The activate the created environment.
+
+```shell
+conda activate tmc_sa
 ```
 
 Then install MoleculeAutoCorrect and Molpert by running the following:
@@ -65,25 +75,3 @@ bin/HighlightMoleculeErrors ./dicts/tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(
 
 `get_sa_from_tmc_smiles` contains the `get_familiarity` function which returns the calculated familiarities. This function can be imported in other scripts and then used
 as an SA score calculator.
-
-<!-- If it has issues you can proceed to try correcting them: -->
-
-<!---->
-
-<!-- ```shell -->
-
-<!-- python AutoCorrectMolecule.py tmc.dict "CCCN(C)[Mo](<-[C]1N(CC)C=CN1CC)(N(C)CCC)N(C)CCC" -->
-
-<!-- ``` -->
-
-<!---->
-
-<!-- You can experiment with different settings, including tree policies. Access the `--help` for more information. -->
-
-<!---->
-
-<!-- ```shell -->
-
-<!-- python AutoCorrectMolecule.py --help -->
-
-<!-- ``` -->

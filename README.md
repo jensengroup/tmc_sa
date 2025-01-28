@@ -9,14 +9,13 @@ Based on work by:
 
 ## Requirements
 
-- RDKit 2022.09.5
-- gcc / g++ > 10.*
+- gcc / g++ $\geq$ 10.*
 
 The MoleculeAutoCorrect and Molpert repos depend on the source C++ code from RDKit. In newer versions of RDKit, certain header files have been removed from the conda install.
 Therefore, these repos need to be compiled in a conda environment with RDKit version 2022.09.5.
 Once the binaries from the MoleculeAutoCorrect repo has been compiled, these binaries can be called from any conda env. E.g a conda env that uses an updated version of RDKit.
 
-Additionally, the gcc and g++ compiler versions need to be above version 10. Otherwise you will get C++ syntax compiler errors.
+Additionally, the gcc and g++ compiler versions need to be version 10 or higher. Otherwise you will get C++ syntax compiler errors.
 
 # Installation
 

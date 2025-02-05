@@ -68,6 +68,18 @@ def familiarity4(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     return familiarity
 
 
+def familiarity5(
+    n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
+):
+    familiarity = (
+        1
+        - 0.2 * n_foreign_atoms
+        - 0.10 * n_foreign_bonds
+        - 0.05 * (n_foreign_environments - n_foreign_pd_envs)
+    )
+    return familiarity
+
+
 def run_shell(command, current_env):
     logger.debug(f"Running subprocess with command: {command}")
     result = subprocess.run(
@@ -208,12 +220,23 @@ def get_scores_from_output(smiles, output):
     n_foreign_environments = int(len(output["foreign_atomic_environments"]))
     n_foreign_tm_bonds = int(output["foreign_tm_bonds"])
 
+    foreign_envs = output["foreign_atomic_environments"]
+
+    n_foreign_pd_envs = 0
+    for d in foreign_envs:
+        env = d["environment"]
+        if "Pd" in env:
+            n_foreign_pd_envs += 1
+
     m = Chem.MolFromSmiles(smiles, sanitize=False)
 
     fam1 = familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
     fam2 = familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
     fam3 = familiarity_tm_bonds(m, n_foreign_tm_bonds)
     fam4 = familiarity4(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
+    fam5 = familiarity5(
+        n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
+    )
 
     logger.debug(
         f"familiarity1: {fam1} | familiarity2: {fam2} | familiarity_tm_bonds: {fam3} | familiarity 4: {fam4}"
@@ -223,6 +246,7 @@ def get_scores_from_output(smiles, output):
     output["familiarity2"] = fam2
     output["familiarity3"] = fam3
     output["familiarity4"] = fam4
+    output["familiarity5"] = fam5
 
     return output
 
@@ -239,6 +263,7 @@ def get_familiarity(smiles, reference_dict=None):
     """
     # Get the current environment variables
     current_env = os.environ.copy()
+    print(smiles)
 
     # Define the command
     command = [
@@ -247,10 +272,12 @@ def get_familiarity(smiles, reference_dict=None):
         smiles,
         "/tmp/image.svg",  # This file will contain an image of the molecule with foreign parts highlighted
     ]
+    print(command)
     logger.debug(f"Executing command for SMILES: {smiles}")
 
     # Run the subprocess
     output = parse_subprocess_output(command, current_env)
+    print(output)
     logger.debug(json.dumps(output, indent=4))
 
     # Add familiarity scores to output

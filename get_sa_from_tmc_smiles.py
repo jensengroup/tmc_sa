@@ -239,7 +239,7 @@ def get_scores_from_output(smiles, output):
     )
 
     logger.debug(
-        f"familiarity1: {fam1} | familiarity2: {fam2} | familiarity_tm_bonds: {fam3} | familiarity 4: {fam4}"
+        f"familiarity1: {fam1} | familiarity2: {fam2} | familiarity_tm_bonds: {fam3} | familiarity 4: {fam4} | familiarity5: {fam5}"
     )
 
     output["familiarity1"] = fam1

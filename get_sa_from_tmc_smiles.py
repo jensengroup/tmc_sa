@@ -65,6 +65,8 @@ def familiarity4(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
         - 0.10 * n_foreign_bonds
         - 0.05 * n_foreign_environments
     )
+    if familiarity < 0:
+        familiarity = 0
     return familiarity
 
 
@@ -77,6 +79,9 @@ def familiarity5(
         - 0.10 * n_foreign_bonds
         - 0.05 * (n_foreign_environments - n_foreign_pd_envs)
     )
+
+    if familiarity < 0:
+        familiarity = 0
     return familiarity
 
 
@@ -263,7 +268,6 @@ def get_familiarity(smiles, reference_dict=None):
     """
     # Get the current environment variables
     current_env = os.environ.copy()
-    print(smiles)
 
     # Define the command
     command = [
@@ -272,12 +276,10 @@ def get_familiarity(smiles, reference_dict=None):
         smiles,
         "/tmp/image.svg",  # This file will contain an image of the molecule with foreign parts highlighted
     ]
-    print(command)
     logger.debug(f"Executing command for SMILES: {smiles}")
 
     # Run the subprocess
     output = parse_subprocess_output(command, current_env)
-    print(output)
     logger.debug(json.dumps(output, indent=4))
 
     # Add familiarity scores to output

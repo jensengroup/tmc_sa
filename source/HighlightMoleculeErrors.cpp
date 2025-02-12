@@ -48,6 +48,7 @@ std::pair<std::vector<unsigned>, std::vector<unsigned>> MolecularErroneousness(
   return {std::move(atom_erroneousness), std::move(bond_erroneousness)};
 };
 
+
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     return 1;
@@ -60,9 +61,12 @@ int main(int argc, char *argv[]) {
 
   ChemicalDictionary dictionary(dictionary_path);
 
+
   RDKit::RWMOL_SPTR molecule;
   try {
-    molecule = UnsanitizedMoleculeFromSMILES(input_smiles);
+    // molecule = RDKit::SmilesToMol(input_smiles, 0, true);
+    molecule = SanitizedMoleculeFromSMILES(input_smiles);
+    // molecule = SanitizedMoleculeFromSMILES(input_smiles);
   } catch (const RDKit::SmilesParseException &exception) {
     std::cout << exception.what() << std::endl;
     return 1;

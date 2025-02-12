@@ -1,11 +1,6 @@
 #include "ChemicalDictionary.hpp"
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <GraphMol/MolOps.h>
-#include <set> // For storing skipped iterations
-
-std::set<int> skipIterations = {
-    7228, 7227, 7229, 7230, 7231,
-    7232, 7233, 7234, 7235, 7236}; // Define iterations to skip
 
 int main(int argc, char *argv[]) {
   if (argc < 3) {

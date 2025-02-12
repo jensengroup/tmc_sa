@@ -99,6 +99,7 @@ def get_dict():
 
     dictionary.number_of_molecules = len(mols)
     dictionary.dataset = args.smiles_data
+    dictionary.BuildPartialKeyDictionaries()
     dictionary.Save(args.dict_name)
 
     logger.info(f"Created dictionary in {end-start} seconds")

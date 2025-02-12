@@ -2,14 +2,14 @@
 #ifndef _CHEMICAL_DICTIONARY_HPP_
 #define _CHEMICAL_DICTIONARY_HPP_
 
-#include "CircularAtomicEnvironment.hpp"
 #include "MolecularKeys.hpp"
+#include "CircularAtomicEnvironment.hpp"
 #include "boost_serialization_tuple.hpp"
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <fstream>
 
 class ChemicalDictionary {
@@ -17,40 +17,31 @@ public:
   typedef std::map<AtomKey, std::uint64_t> AtomDictionary;
   typedef std::map<BondKey, std::uint64_t> BondDictionary;
 
-  typedef std::unordered_map<AtomKey::D, std::uint64_t, boost::hash<AtomKey::D>>
-      DDictionary;
+  typedef std::unordered_map<AtomKey::D, std::uint64_t,
+    boost::hash<AtomKey::D>> DDictionary;
   typedef std::unordered_map<AtomKey::DV, std::uint64_t,
-                             boost::hash<AtomKey::DV>>
-      DVDictionary;
+    boost::hash<AtomKey::DV>> DVDictionary;
   typedef std::unordered_map<AtomKey::DVZ, std::uint64_t,
-                             boost::hash<AtomKey::DVZ>>
-      DVZDictionary;
+    boost::hash<AtomKey::DVZ>> DVZDictionary;
   typedef std::unordered_map<AtomKey::DVZQ, std::uint64_t,
-                             boost::hash<AtomKey::DVZQ>>
-      DVZQDictionary;
+    boost::hash<AtomKey::DVZQ>> DVZQDictionary;
   typedef std::unordered_map<BondKey::K1K2, std::uint64_t,
-                             boost::hash<BondKey::K1K2>>
-      K1K2Dictionary;
+    boost::hash<BondKey::K1K2>> K1K2Dictionary;
 
   // Vector values are sorted according to frequency in descending order.
   // This allows us to prioritize the most frequent values fulfilling a query.
   typedef std::unordered_map<
-      AtomKey::DV, std::vector<std::pair<std::uint8_t, std::uint64_t>>,
-      boost::hash<AtomKey::DV>>
-      DV_Z;
-  typedef std::unordered_map<AtomKey::DVZ,
-                             std::vector<std::pair<std::int8_t, std::uint64_t>>,
-                             boost::hash<AtomKey::DVZ>>
-      DVZ_Q;
+    AtomKey::DV, std::vector<std::pair<std::uint8_t, std::uint64_t>>,
+    boost::hash<AtomKey::DV>> DV_Z;
   typedef std::unordered_map<
-      AtomKey::DVZQ, std::vector<std::pair<std::uint8_t, std::uint64_t>>,
-      boost::hash<AtomKey::DVZQ>>
-      DVZQ_H;
+    AtomKey::DVZ, std::vector<std::pair<std::int8_t, std::uint64_t>>,
+    boost::hash<AtomKey::DVZ>> DVZ_Q;
   typedef std::unordered_map<
-      BondKey::K1K2,
-      std::vector<std::pair<RDKit::Bond::BondType, std::uint64_t>>,
-      boost::hash<BondKey::K1K2>>
-      K1K2_B;
+    AtomKey::DVZQ, std::vector<std::pair<std::uint8_t, std::uint64_t>>,
+    boost::hash<AtomKey::DVZQ>> DVZQ_H;
+  typedef std::unordered_map<
+    BondKey::K1K2, std::vector<std::pair<RDKit::Bond::BondType, std::uint64_t>>,
+    boost::hash<BondKey::K1K2>> K1K2_B;
 
   // EnvironmentDictionary stores only CircularAtomicEnvironment hashes as
   // opposed to the actual object. This is because CircularAtomicEnvironment
@@ -59,8 +50,7 @@ public:
   // would be expensive. The only advantage would be to test for equality with
   // operator==, but since this would also be expensive and the probability of
   // a hash collision is small we skip this.
-  typedef std::unordered_map<EnvironmentKey, std::uint64_t>
-      EnvironmentDictionary;
+  typedef std::unordered_map<EnvironmentKey, std::uint64_t> EnvironmentDictionary;
 
 private:
   AtomDictionary atom_dictionary;
@@ -96,33 +86,37 @@ public:
 private:
   friend class boost::serialization::access;
   template <class Archive>
-  void serialize(Archive &archive, const unsigned version = 20230424) {
+  void serialize(Archive& archive, const unsigned version = 20230424) {
     // NOTE: We can't serialize atoms_hasher because it's a functional.
     // If you are not using the default hasher you should ensure you construct
     // deserialized instances with the same hasher of the serialized instance.
-    archive & atom_dictionary & bond_dictionary & d_dictionary & dv_dictionary &
-        dvz_dictionary & dvzq_dictionary & k1k2_dictionary & dv_z & dvz_q &
-        dvzq_h & k1k2_b & environment_dictionary & environment_radius &
-        total_atom_frequency & total_bond_frequency &
-        foreign_d_frequency_threshold & foreign_dv_frequency_threshold &
-        foreign_dvz_frequency_threshold & foreign_dvzq_frequency_threshold &
-        foreign_k1k2_frequency_threshold & foreign_atom_frequency_threshold &
-        foreign_bond_frequency_threshold &
-        foreign_environment_frequency_threshold;
+    archive &
+      atom_dictionary & bond_dictionary & d_dictionary & dv_dictionary &
+      dvz_dictionary & dvzq_dictionary & k1k2_dictionary &
+      dv_z & dvz_q & dvzq_h & k1k2_b &
+      environment_dictionary & environment_radius &
+      total_atom_frequency & total_bond_frequency &
+      foreign_d_frequency_threshold & foreign_dv_frequency_threshold &
+      foreign_dvz_frequency_threshold & foreign_dvzq_frequency_threshold &
+      foreign_k1k2_frequency_threshold & foreign_atom_frequency_threshold &
+      foreign_bond_frequency_threshold & foreign_environment_frequency_threshold;
   };
 
   template <class Key, class Value, class Hash>
   std::vector<Value> AllowedValues(
-      const std::unordered_map<
-          Key, std::vector<std::pair<Value, std::uint64_t>>, Hash> &kv,
-      const Key &key, std::uint64_t frequency_threshold = 1) const {
+    const std::unordered_map<
+      Key,
+      std::vector<std::pair<Value, std::uint64_t>>,
+      Hash>& kv,
+    const Key& key,
+    std::uint64_t frequency_threshold = 1) const {
     std::vector<Value> values;
     auto it = kv.find(key);
     if (it == kv.cend()) {
       return values;
     };
     values.reserve(it->second.size());
-    for (const auto &[value, frequency] : it->second) {
+    for (const auto& [value, frequency] : it->second) {
       if (frequency >= frequency_threshold) {
         values.push_back(value);
       };
@@ -131,7 +125,8 @@ private:
   };
 
   template <class Dictionary, class Key>
-  void IncrementDictionaryValue(Dictionary &dictionary, const Key &key) {
+  void IncrementDictionaryValue(
+    Dictionary& dictionary,const Key& key) {
     auto [it, emplaced] = dictionary.emplace(key, 1);
     if (!emplaced) {
       ++(it->second);
@@ -139,38 +134,39 @@ private:
   };
 
 public:
-  ChemicalDictionary(unsigned environment_radius = 2)
-      : environment_radius(environment_radius),
-        environment_generator(environment_radius) {};
-  ChemicalDictionary(const std::string &path) {
+  ChemicalDictionary(unsigned environment_radius = 2) :
+    environment_radius(environment_radius),
+    environment_generator(environment_radius) {};
+  ChemicalDictionary(
+    const std::string& path) {
     Load(path);
-    environment_generator =
-        CircularAtomicEnvironmentGenerator(environment_radius);
+    environment_generator = CircularAtomicEnvironmentGenerator(
+      environment_radius);
   };
 
-  void AddMolecule(const RDKit::ROMol &molecule) {
-    MolecularKeys molecular_keys(molecule);
+  void AddMolecule(const RDKit::ROMol& molecule) {
+    MolecularKeys molecular_keys (molecule);
     total_atom_frequency += molecular_keys.atom_keys.size();
     total_bond_frequency += molecular_keys.bond_keys.size();
-    for (const AtomKey &atom_key : molecular_keys.atom_keys) {
+    for (const AtomKey& atom_key : molecular_keys.atom_keys) {
       IncrementDictionaryValue(d_dictionary, atom_key.d());
       IncrementDictionaryValue(dv_dictionary, atom_key.dv());
       IncrementDictionaryValue(dvz_dictionary, atom_key.dvz());
       IncrementDictionaryValue(dvzq_dictionary, atom_key.dvzq());
       IncrementDictionaryValue(atom_dictionary, std::move(atom_key));
     };
-    for (const BondKey &bond_key : molecular_keys.bond_keys) {
+    for (const BondKey& bond_key : molecular_keys.bond_keys) {
       IncrementDictionaryValue(k1k2_dictionary, bond_key.k1k2());
       IncrementDictionaryValue(bond_dictionary, std::move(bond_key));
     };
-    for (const RDKit::Atom *atom : molecule.atoms()) {
-      IncrementDictionaryValue(environment_dictionary,
-                               environment_generator.Key(atom));
+    for (const RDKit::Atom* atom : molecule.atoms()) {
+      IncrementDictionaryValue(
+        environment_dictionary, environment_generator.Key(atom));
     };
   };
 
   void BuildPartialAtomKeyDictionaries() {
-    auto second_gt = [](const auto &p1, const auto &p2) {
+    auto second_gt = [] (const auto& p1, const auto& p2) {
       return p1.second > p2.second;
     };
 
@@ -178,9 +174,10 @@ public:
     dvz_q.clear();
     dvzq_h.clear();
 
-    AtomDictionary::const_iterator begin_it = atom_dictionary.cbegin(),
-                                   end_it = atom_dictionary.cend();
-    const auto &[first_atom_key, first_atom_frequency] = *begin_it;
+    AtomDictionary::const_iterator
+      begin_it = atom_dictionary.cbegin(),
+      end_it = atom_dictionary.cend();
+    const auto& [first_atom_key, first_atom_frequency] = *begin_it;
     ++begin_it;
 
     AtomKey::DV prev_dv = first_atom_key.dv();
@@ -196,14 +193,14 @@ public:
     dvzq_hf.emplace_back(first_atom_key.n_hydrogens, first_atom_frequency);
 
     for (auto it = begin_it; it != end_it; ++it) {
-      const auto &[atom_key, frequency] = *it;
+      const auto& [atom_key, frequency] = *it;
 
       AtomKey::DV dv = atom_key.dv();
       AtomKey::DVZ dvz = atom_key.dvz();
       AtomKey::DVZQ dvzq = atom_key.dvzq();
 
       if (dv == prev_dv) {
-        auto &[z, f] = dv_zf.back();
+        auto& [z, f] = dv_zf.back();
         if (atom_key.atomic_number == z) {
           f += frequency;
         } else {
@@ -217,7 +214,7 @@ public:
       };
 
       if (dvz == prev_dvz) {
-        auto &[q, f] = dvz_qf.back();
+        auto& [q, f] = dvz_qf.back();
         if (atom_key.formal_charge == q) {
           f += frequency;
         } else {
@@ -253,15 +250,16 @@ public:
   };
 
   void BuildPartialBondKeyDictionary() {
-    auto second_gt = [](const auto &p1, const auto &p2) {
+    auto second_gt = [] (const auto& p1, const auto& p2) {
       return p1.second > p2.second;
     };
 
     k1k2_b.clear();
 
-    BondDictionary::const_iterator begin_it = bond_dictionary.cbegin(),
-                                   end_it = bond_dictionary.cend();
-    const auto &[first_bond_key, first_bond_frequency] = *begin_it;
+    BondDictionary::const_iterator
+      begin_it = bond_dictionary.cbegin(),
+      end_it = bond_dictionary.cend();
+    const auto& [first_bond_key, first_bond_frequency] = *begin_it;
     ++begin_it;
 
     BondKey::K1K2 prev_k1k2 = first_bond_key.k1k2();
@@ -270,7 +268,7 @@ public:
     k1k2_bf.emplace_back(first_bond_key.bond_type, first_bond_frequency);
 
     for (auto it = begin_it; it != end_it; ++it) {
-      const auto &[bond_key, frequency] = *it;
+      const auto& [bond_key, frequency] = *it;
       BondKey::K1K2 k1k2 = bond_key.k1k2();
       if (k1k2 == prev_k1k2) {
         k1k2_bf.emplace_back(bond_key.bond_type, frequency);
@@ -292,94 +290,94 @@ public:
     BuildPartialBondKeyDictionary();
   };
 
-  std::uint64_t AtomFrequency(const AtomKey &atom_key) const {
+  std::uint64_t AtomFrequency(const AtomKey& atom_key) const {
     AtomDictionary::const_iterator it = atom_dictionary.find(atom_key);
     return it == atom_dictionary.cend() ? 0 : it->second;
   };
 
-  std::uint64_t BondFrequency(const BondKey &bond_key) const {
+  std::uint64_t BondFrequency(const BondKey& bond_key) const {
     BondDictionary::const_iterator it = bond_dictionary.find(bond_key);
     return it == bond_dictionary.cend() ? 0 : it->second;
   };
 
-  std::uint64_t DFrequency(const AtomKey::D &d) const {
+  std::uint64_t DFrequency(const AtomKey::D& d) const {
     DDictionary::const_iterator it = d_dictionary.find(d);
     return it == d_dictionary.cend() ? 0 : it->second;
   };
 
-  std::uint64_t DVFrequency(const AtomKey::DV &dv) const {
+  std::uint64_t DVFrequency(const AtomKey::DV& dv) const {
     DVDictionary::const_iterator it = dv_dictionary.find(dv);
     return it == dv_dictionary.cend() ? 0 : it->second;
   };
 
-  std::uint64_t DVZFrequency(const AtomKey::DVZ &dvz) const {
+  std::uint64_t DVZFrequency(const AtomKey::DVZ& dvz) const {
     DVZDictionary::const_iterator it = dvz_dictionary.find(dvz);
     return it == dvz_dictionary.cend() ? 0 : it->second;
   };
 
-  std::uint64_t DVZQFrequency(const AtomKey::DVZQ &dvzq) const {
+  std::uint64_t DVZQFrequency(const AtomKey::DVZQ& dvzq) const {
     DVZQDictionary::const_iterator it = dvzq_dictionary.find(dvzq);
     return it == dvzq_dictionary.cend() ? 0 : it->second;
   };
 
-  std::uint64_t K1K2Frequency(const BondKey::K1K2 &k1k2) const {
+  std::uint64_t K1K2Frequency(const BondKey::K1K2& k1k2) const {
     K1K2Dictionary::const_iterator it = k1k2_dictionary.find(k1k2);
     return it == k1k2_dictionary.cend() ? 0 : it->second;
   };
 
-  std::uint64_t
-  EnvironmentFrequency(const EnvironmentKey &environment_key) const {
-    EnvironmentDictionary::const_iterator it =
-        environment_dictionary.find(environment_key);
+  std::uint64_t EnvironmentFrequency(
+    const EnvironmentKey& environment_key) const {
+    EnvironmentDictionary::const_iterator
+      it = environment_dictionary.find(environment_key);
     return it == environment_dictionary.cend() ? 0 : it->second;
   };
 
-  std::vector<std::uint8_t> Z_DV(const AtomKey::DV &dv) const {
+  std::vector<std::uint8_t> Z_DV(const AtomKey::DV& dv) const {
     return AllowedValues(dv_z, dv, foreign_dvz_frequency_threshold);
   };
 
-  std::vector<std::int8_t> Q_DVZ(const AtomKey::DVZ &dvz) const {
+  std::vector<std::int8_t> Q_DVZ(const AtomKey::DVZ& dvz) const {
     return AllowedValues(dvz_q, dvz, foreign_dvzq_frequency_threshold);
   };
 
-  std::vector<std::uint8_t> H_DVZQ(const AtomKey::DVZQ &dvzq) const {
+  std::vector<std::uint8_t> H_DVZQ(const AtomKey::DVZQ& dvzq) const {
     return AllowedValues(dvzq_h, dvzq, foreign_atom_frequency_threshold);
   };
 
-  std::vector<RDKit::Bond::BondType> B_K1K2(const BondKey::K1K2 &k1k2) const {
+  std::vector<RDKit::Bond::BondType> B_K1K2(const BondKey::K1K2& k1k2) const {
     return AllowedValues(k1k2_b, k1k2, foreign_bond_frequency_threshold);
   };
 
-  bool IsForeignAtom(const AtomKey &atom_key) const {
+  bool IsForeignAtom(const AtomKey& atom_key) const {
     return AtomFrequency(atom_key) < foreign_atom_frequency_threshold;
   };
 
-  bool IsForeignAtom(const RDKit::Atom *atom) const {
+  bool IsForeignAtom(const RDKit::Atom* atom) const {
     return IsForeignAtom(AtomKey(atom));
   };
 
-  bool IsForeignBond(const BondKey &bond_key) const {
+  bool IsForeignBond(const BondKey& bond_key) const {
     return BondFrequency(bond_key) < foreign_bond_frequency_threshold;
   };
 
-  bool IsForeignBond(const RDKit::Bond *bond) const {
+  bool IsForeignBond(const RDKit::Bond* bond) const {
     return IsForeignBond(BondKey(bond));
   };
 
-  CircularAtomicEnvironment Environment(const RDKit::Atom *atom) const {
+  CircularAtomicEnvironment Environment(const RDKit::Atom* atom) const {
     return environment_generator(atom);
   };
 
-  bool IsForeignEnvironment(const EnvironmentKey &environment_key) const {
+  bool IsForeignEnvironment(const EnvironmentKey& environment_key) const {
     return EnvironmentFrequency(environment_key) <
-           foreign_environment_frequency_threshold;
+      foreign_environment_frequency_threshold;
   };
 
-  bool IsForeignEnvironment(const RDKit::Atom *atom) {
+  bool IsForeignEnvironment(const RDKit::Atom* atom) {
     return IsForeignEnvironment(environment_generator.Key(atom));
   };
 
-  AtomKey::Error AtomKeyError(const AtomKey &atom_key) const {
+  AtomKey::Error AtomKeyError(const AtomKey& atom_key) const {
     if (!IsForeignAtom(atom_key)) {
       return AtomKey::Error::NONE;
     };
@@ -398,7 +396,7 @@ public:
     return AtomKey::Error::DVZQH;
   };
 
-  BondKey::Error BondKeyError(const BondKey &bond_key) const {
+  BondKey::Error BondKeyError(const BondKey& bond_key) const {
     if (!IsForeignBond(bond_key)) {
       return BondKey::Error::NONE;
     };
@@ -408,34 +406,44 @@ public:
     return BondKey::Error::K1K2B;
   };
 
-  std::uint64_t GetTotalAtomFrequency() const { return total_atom_frequency; };
+  std::uint64_t GetTotalAtomFrequency() const {
+    return total_atom_frequency;
+  };
 
-  std::uint64_t GetTotalBondFrequency() const { return total_bond_frequency; };
+  std::uint64_t GetTotalBondFrequency() const {
+    return total_bond_frequency;
+  };
 
-  const AtomDictionary &GetAtomDictionary() const { return atom_dictionary; };
+  const AtomDictionary& GetAtomDictionary() const {
+    return atom_dictionary;
+  };
 
-  const BondDictionary &GetBondDictionary() const { return bond_dictionary; };
+  const BondDictionary& GetBondDictionary() const {
+    return bond_dictionary;
+  };
 
-  const EnvironmentDictionary &GetEnvironmentDictionary() const {
+  const EnvironmentDictionary& GetEnvironmentDictionary() const {
     return environment_dictionary;
   };
 
-  const CircularAtomicEnvironmentGenerator &GetEnvironmentGenerator() const {
+  const CircularAtomicEnvironmentGenerator& GetEnvironmentGenerator() const {
     return environment_generator;
   };
 
-  unsigned GetEnvironmentRadius() const { return environment_radius; };
+  unsigned GetEnvironmentRadius() const {
+    return environment_radius;
+  };
 
-  void Save(const std::string &path) const {
-    std::ofstream output_stream(path, std::ofstream::binary);
-    boost::archive::binary_oarchive archive(output_stream);
+  void Save(const std::string& path) const {
+    std::ofstream output_stream (path, std::ofstream::binary);
+    boost::archive::binary_oarchive archive (output_stream);
     archive << *this;
     output_stream.close();
   };
 
-  void Load(const std::string &path) {
-    std::ifstream input_stream(path, std::ifstream::binary);
-    boost::archive::binary_iarchive archive(input_stream);
+  void Load(const std::string& path) {
+    std::ifstream input_stream (path, std::ifstream::binary);
+    boost::archive::binary_iarchive archive (input_stream);
     archive >> *this;
     input_stream.close();
   };

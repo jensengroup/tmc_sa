@@ -85,6 +85,22 @@ def familiarity5(
     return familiarity
 
 
+def familiarity6(
+    n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
+):
+    familiarity = (
+        1
+        - 0.1 * n_foreign_atoms
+        - 0.05 * n_foreign_bonds
+        - 0.01 * (n_foreign_environments - n_foreign_pd_envs)
+    )
+
+    if familiarity < 0:
+        familiarity = 0
+
+    return familiarity
+
+
 def run_shell(command, current_env):
     logger.debug(f"Running subprocess with command: {command}")
     result = subprocess.run(
@@ -242,6 +258,9 @@ def get_scores_from_output(smiles, output):
     fam5 = familiarity5(
         n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
     )
+    fam6 = familiarity5(
+        n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
+    )
 
     logger.debug(
         f"familiarity1: {fam1} | familiarity2: {fam2} | familiarity_tm_bonds: {fam3} | familiarity 4: {fam4} | familiarity5: {fam5}"
@@ -252,6 +271,7 @@ def get_scores_from_output(smiles, output):
     output["familiarity3"] = fam3
     output["familiarity4"] = fam4
     output["familiarity5"] = fam5
+    output["familiarity6"] = fam6
 
     return output
 

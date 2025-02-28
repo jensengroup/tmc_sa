@@ -22,7 +22,7 @@ def ParseArgs(arg_list=None):
         type=str,
         default=None,
         required=True,
-        help="Path to a .smi file",
+        help="Path to the input .smi file",
     )
     parser.add_argument(
         "--dict_name",
@@ -46,10 +46,11 @@ def ParseArgs(arg_list=None):
 
 
 def get_dict():
-    # Get the current environment variables
+    "Create chemical dikctionary"
+
     current_env = os.environ.copy()
 
-    # # Add/Modify the environment variable
+    # # Add/Modify the environment variables
     # current_env["MOLECULE_AUTO_CORRECT"] = "/home/magstr/git/MoleculeAutoCorrect"
     # current_env["MOLPERT"] = "/home/magstr/git/Molpert"
 
@@ -68,7 +69,7 @@ def get_dict():
         logger.error("Could not create dictionary")
         return
     logger.info(
-        "Succesfully created single entry dict. Adding remaning entries in Python."
+        "Succesfully created single entry dict. Adding remaning entries at the Python level"
     )
 
     logger.info(f"Loading the single entry dict: {args.dict_name}")
@@ -110,6 +111,5 @@ def get_dict():
 if __name__ == "__main__":
     args = ParseArgs()
     level = "DEBUG" if args.debug else "INFO"
-    # Initialize logging
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=level)
     get_dict()

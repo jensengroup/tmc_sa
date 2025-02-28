@@ -21,6 +21,7 @@ TRANSITION_METALS_NUM = [21,22,23,24,25,26,27,57,28,29,30,39,40,41,
 ]
 # fmt: on
 
+# SMARTS string for TRANSITION_METALS
 tm = f"[{','.join(TRANSITION_METALS)}]"
 
 
@@ -122,6 +123,8 @@ def run_shell(command, current_env):
 
 
 def parse_subprocess_output(command, current_env):
+    "Function parsing the output returned by the compiled binary"
+
     output = run_shell(command, current_env)
 
     parsed_data = {
@@ -134,7 +137,7 @@ def parse_subprocess_output(command, current_env):
         "foreign_tm_bonds": 0,
     }
 
-    # Parse the input molecule
+    # Parse the input molecule string
     match = re.search(r"Input molecule:\s*(.+)", output)
     if match:
         parsed_data["input_molecule"] = match.group(1)
@@ -162,12 +165,8 @@ def parse_subprocess_output(command, current_env):
     for bond_match in bond_matches:
         parsed_data["bonds"].append(
             {
-                "bond_id": bond_match.group(
-                    1
-                ),  # Keep the bond ID as a string, e.g., "Bond 12"
-                "details": bond_match.group(
-                    2
-                ).strip(),  # Store everything after the colon as a string
+                "bond_id": bond_match.group(1),
+                "details": bond_match.group(2).strip(),
             }
         )
 
@@ -181,6 +180,7 @@ def parse_subprocess_output(command, current_env):
             }
         )
 
+    # Match the bond keys and use to detect TM bonds.
     pattern = re.compile(
         r"\((-?\d+,-?\d+,-?\d+,-?\d+,-?\d+)\)->\((-?\d+,-?\d+,-?\d+,-?\d+,-?\d+)\)"
     )
@@ -208,7 +208,7 @@ def parse_subprocess_output(command, current_env):
 
 def ParseArgs(arg_list=None):
     parser = argparse.ArgumentParser(
-        description="Run GA algorithm", fromfile_prefix_chars="+"
+        description="Get familiarity scores from TMC SMILES", fromfile_prefix_chars="+"
     )
     parser.add_argument("--smiles", type=str, default=None)
     parser.add_argument(
@@ -222,27 +222,26 @@ def ParseArgs(arg_list=None):
         "--db-path",
         type=str,
         default="familiarity_scores.db",
-        help="Path to the SQLite database file",
+        help="Path to the SQLite database file used to store familiarity scores",
     )
     parser.add_argument(
         "--reference_dict",
         type=Path,
         default="./dicts/csd_smiles_both_agree_train.dict",
-        help="Path to the TMC dict",
+        help="Path to the TMC reference dict",
     )
 
     return parser.parse_args(arg_list)
 
 
 def get_scores_from_output(smiles, output):
-    logger.debug("Getting familiarity")
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
     n_foreign_environments = int(len(output["foreign_atomic_environments"]))
     n_foreign_tm_bonds = int(output["foreign_tm_bonds"])
-
     foreign_envs = output["foreign_atomic_environments"]
 
+    # Get measure for envs with Pd.
     n_foreign_pd_envs = 0
     for d in foreign_envs:
         env = d["environment"]
@@ -263,7 +262,8 @@ def get_scores_from_output(smiles, output):
     )
 
     logger.debug(
-        f"familiarity1: {fam1} | familiarity2: {fam2} | familiarity_tm_bonds: {fam3} | familiarity 4: {fam4} | familiarity5: {fam5}"
+        f"familiarity1: {fam1} | familiarity2: {fam2} | familiarity_tm_bonds: {fam3} | familiarity 4: {fam4} | familiarity5: {fam5}\
+        | familiarity6: {fam6}"
     )
 
     output["familiarity1"] = fam1
@@ -286,10 +286,8 @@ def get_familiarity(smiles, reference_dict=None):
     Returns:
         output (dict): Dictionary with the calulated familiarities and the parsed output from the MOLECULE_AUTO_CORRECT binary
     """
-    # Get the current environment variables
     current_env = os.environ.copy()
 
-    # Define the command
     command = [
         f"{current_env['MOLECULE_AUTO_CORRECT']}/bin/HighlightMoleculeErrors",
         str(reference_dict),
@@ -302,7 +300,7 @@ def get_familiarity(smiles, reference_dict=None):
     output = parse_subprocess_output(command, current_env)
     logger.debug(json.dumps(output, indent=4))
 
-    # Add familiarity scores to output
+    # Parse to output and get get familiarity scores.
     output = get_scores_from_output(smiles, output)
 
     return output
@@ -310,7 +308,6 @@ def get_familiarity(smiles, reference_dict=None):
 
 if __name__ == "__main__":
     args = ParseArgs()
-    # Initialize logging
     if args.log_level == "DISABLE":
         logging.disable(logging.CRITICAL)
     else:
@@ -322,12 +319,12 @@ if __name__ == "__main__":
 
     # Reference dictionary
     reference_dict = args.reference_dict.resolve()
+
     # Check if the familiarity score already exists
     # existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
     # if existing_score is not None:
     #     logger.info(f"Familiarity score for SMILES already exists: {existing_score}")
 
-    # else:
     # Compute or retrieve familiarity score
     output = get_familiarity(args.smiles, reference_dict=str(reference_dict))
     logger.info("Printing the familiarity output:")

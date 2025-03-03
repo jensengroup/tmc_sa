@@ -53,6 +53,9 @@ We provide python wrapper functions that call the compiled binaries from Molecul
 
 Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `tmc.smi`). Then use this library to create a dictionary of chemical features (here `tmc.dict`). You can specify the radius of circular atomic environments using the --environment_radius argument (here `1`).
 
+> **Important:** The SMILES need to have explicit hydrogens to get proper encoding of keys! Currently, SMILES missing explicit hydrogens are encoded
+> incorrectly.
+
 Creating the tmc.dict by calling the MoleculeAutoCorrect binaries with Python using the scripts highlighted below:
 NB! When creating the dict, it is important that you use the conda env installed above ([env.yml](env.yml)). Otherwise you will get an error. After the .dict has been created you can switch to an environment with a newer version of RDKit.
 

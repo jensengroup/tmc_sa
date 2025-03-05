@@ -1,10 +1,10 @@
-# TMC_SA
+# TMC SA
 
-SA like score for TMCs.
+Functionality to evaluate the synthetic accessibility of TMCs.
 
 A virtual library of reference correct TMCs is used to build a dictionary of allowed chemical features. The chemical features of input molecules are compared against this dictionary to yield a familiarity score of a given TMC.
 
-Based on work by:
+Based on the MoleculeAutoCorrect and Molpert library by:
 [Kerstjens, A., De Winter, H. Molecule auto-correction to facilitate molecular design. J Comput Aided Mol Des 38, 10 (2024).](https://doi.org/10.1007/s10822-024-00549-1).
 
 ## Requirements
@@ -26,7 +26,7 @@ To get started, first install the conda env: [env.yml](env.yml)
 ```shell
 conda env create --file ./env.yml
 ```
-The activate the created environment.
+Then activate the created environment.
 
 ```shell
 conda activate tmc_sa
@@ -53,7 +53,8 @@ We provide python wrapper functions that call the compiled binaries from Molecul
 
 Get your hands on a virtual library of molecules you would like to use as reference of correct chemistry (here `tmc.smi`). Then use this library to create a dictionary of chemical features (here `tmc.dict`). You can specify the radius of circular atomic environments using the --environment_radius argument (here `1`).
 
-> **Important:** The SMILES need to have explicit hydrogens to get proper encoding of keys! Currently, SMILES missing explicit hydrogens are encoded
+> **Important:** The input SMILES need to have explicit hydrogens to get proper encoding of keys! Currently, SMILES missing explicit hydrogens are
+> encoded
 > incorrectly.
 
 Creating the tmc.dict by calling the MoleculeAutoCorrect binaries with Python using the scripts highlighted below:

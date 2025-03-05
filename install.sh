@@ -7,7 +7,7 @@ export MOLPERT="$(pwd)/Molpert"
 export MOLECULE_AUTO_CORRECT="$(pwd)"
 
 # Clone the Molpert repository dependency
-git clone https://github.com/AlanKerstjens/Molpert.git
+# git clone https://github.com/AlanKerstjens/Molpert.git
 
 # Install molpert
 mkdir ${MOLPERT}/build && cd ${MOLPERT}/build

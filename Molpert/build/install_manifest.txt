@@ -1,1 +1,0 @@
-/home/magstr/git/Molpert/lib/molpert.so

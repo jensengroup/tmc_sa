@@ -43,57 +43,12 @@ def familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     return familiarity
 
 
-def familiarity_tm_bonds(m, n_foreign_tm_bonds):
-    match = m.GetSubstructMatch(Chem.MolFromSmarts(tm))
-    if not match:
-        logger.warning(f"No TM metal for this SMILES: {Chem.MolToSmiles(m)}")
-        return None
-    neighbors = m.GetAtomWithIdx(
-        m.GetSubstructMatch(Chem.MolFromSmarts(tm))[0]
-    ).GetNeighbors()
-
-    n_keys = len(neighbors)
-
-    familiarity = (n_keys - n_foreign_tm_bonds) / n_keys
-
-    return familiarity
-
-
-def familiarity4(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
-    familiarity = (
-        1
-        - 0.2 * n_foreign_atoms
-        - 0.10 * n_foreign_bonds
-        - 0.05 * n_foreign_environments
-    )
-    if familiarity < 0:
-        familiarity = 0
-    return familiarity
-
-
-def familiarity5(
-    n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
-):
-    familiarity = (
-        1
-        - 0.2 * n_foreign_atoms
-        - 0.10 * n_foreign_bonds
-        - 0.05 * (n_foreign_environments - n_foreign_pd_envs)
-    )
-
-    if familiarity < 0:
-        familiarity = 0
-    return familiarity
-
-
-def familiarity6(
-    n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
-):
+def familiarity3(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     familiarity = (
         1
         - 0.1 * n_foreign_atoms
         - 0.05 * n_foreign_bonds
-        - 0.01 * (n_foreign_environments - n_foreign_pd_envs)
+        - 0.01 * n_foreign_environments
     )
 
     if familiarity < 0:
@@ -234,7 +189,7 @@ def ParseArgs(arg_list=None):
     return parser.parse_args(arg_list)
 
 
-def get_scores_from_output(smiles, output):
+def get_scores_from_output(smiles, args, output):
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
     n_foreign_environments = int(len(output["foreign_atomic_environments"]))
@@ -251,32 +206,27 @@ def get_scores_from_output(smiles, output):
     m = Chem.MolFromSmiles(smiles, sanitize=False)
 
     fam1 = familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
-    fam2 = familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
-    fam3 = familiarity_tm_bonds(m, n_foreign_tm_bonds)
-    fam4 = familiarity4(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
-    fam5 = familiarity5(
-        n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
-    )
-    fam6 = familiarity5(
-        n_foreign_atoms, n_foreign_bonds, n_foreign_environments, n_foreign_pd_envs
-    )
+    fam3 = familiarity3(n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
+    logger.debug(f"familiarity1: {fam1} | familiarity3: {fam3}")
 
-    logger.debug(
-        f"familiarity1: {fam1} | familiarity2: {fam2} | familiarity_tm_bonds: {fam3} | familiarity 4: {fam4} | familiarity5: {fam5}\
-        | familiarity6: {fam6}"
-    )
+    if args.get("exclude_tm_env", False):
+        # Get measure for envs with Pd.
+        n_foreign_pd_envs = 0
+        for d in foreign_envs:
+            env = d["environment"]
+            if "Pd" in env:
+                n_foreign_pd_envs += 1
+        fam1 += 0.01 * n_foreign_pd_envs
+        fam3 += 0.01 * n_foreign_pd_envs
+        logger.debug(f"After excluding familiarity1: {fam1} | familiarity3: {fam3}")
 
     output["familiarity1"] = fam1
-    output["familiarity2"] = fam2
     output["familiarity3"] = fam3
-    output["familiarity4"] = fam4
-    output["familiarity5"] = fam5
-    output["familiarity6"] = fam6
 
     return output
 
 
-def get_familiarity(smiles, reference_dict=None):
+def get_familiarity(smiles, reference_dict=None, args=None):
     """Calculate familiarity scores for a given TMC SMILES.
 
     Args:
@@ -301,7 +251,7 @@ def get_familiarity(smiles, reference_dict=None):
     logger.debug(json.dumps(output, indent=4))
 
     # Parse to output and get get familiarity scores.
-    output = get_scores_from_output(smiles, output)
+    output = get_scores_from_output(smiles, args, output)
 
     return output
 

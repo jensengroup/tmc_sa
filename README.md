@@ -7,7 +7,7 @@ A virtual library of reference correct TMCs is used to build a dictionary of all
 Based on the MoleculeAutoCorrect and Molpert library by:
 [Kerstjens, A., De Winter, H. Molecule auto-correction to facilitate molecular design. J Comput Aided Mol Des 38, 10 (2024).](https://doi.org/10.1007/s10822-024-00549-1).
 
-Github: (MoleculeAutoCorrect)[github.com/AlanKerstjens/MoleculeAutoCorrect]
+Github: [MoleculeAutoCorrect](github.com/AlanKerstjens/MoleculeAutoCorrect)
 
 ## Requirements
 

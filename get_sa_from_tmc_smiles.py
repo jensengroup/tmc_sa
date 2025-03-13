@@ -196,13 +196,6 @@ def get_scores_from_output(smiles, args, output):
     n_foreign_tm_bonds = int(output["foreign_tm_bonds"])
     foreign_envs = output["foreign_atomic_environments"]
 
-    # Get measure for envs with Pd.
-    n_foreign_pd_envs = 0
-    for d in foreign_envs:
-        env = d["environment"]
-        if "Pd" in env:
-            n_foreign_pd_envs += 1
-
     m = Chem.MolFromSmiles(smiles, sanitize=False)
 
     fam1 = familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments)
@@ -216,7 +209,6 @@ def get_scores_from_output(smiles, args, output):
             env = d["environment"]
             if "Pd" in env:
                 n_foreign_pd_envs += 1
-        fam1 += 0.01 * n_foreign_pd_envs
         fam3 += 0.01 * n_foreign_pd_envs
         logger.debug(f"After excluding familiarity1: {fam1} | familiarity3: {fam3}")
 

@@ -185,6 +185,11 @@ def ParseArgs(arg_list=None):
         default="./dicts/csd_smiles_both_agree_train.dict",
         help="Path to the TMC reference dict",
     )
+    (
+        parser.add_argument(
+            "--exclude_tm_env", action="store_true", help="Apply size modifier"
+        ),
+    )
 
     return parser.parse_args(arg_list)
 
@@ -262,13 +267,17 @@ if __name__ == "__main__":
     # Reference dictionary
     reference_dict = args.reference_dict.resolve()
 
+    args = vars(args)
+
     # Check if the familiarity score already exists
     # existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
     # if existing_score is not None:
     #     logger.info(f"Familiarity score for SMILES already exists: {existing_score}")
 
     # Compute or retrieve familiarity score
-    output = get_familiarity(args.smiles, reference_dict=str(reference_dict))
+    output = get_familiarity(
+        args["smiles"], reference_dict=str(reference_dict), args=args
+    )
     logger.info("Printing the familiarity output:")
     logger.info(json.dumps(output, indent=4))
 

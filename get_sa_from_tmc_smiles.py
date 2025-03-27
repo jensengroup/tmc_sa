@@ -25,20 +25,20 @@ TRANSITION_METALS_NUM = [21,22,23,24,25,26,27,57,28,29,30,39,40,41,
 tm = f"[{','.join(TRANSITION_METALS)}]"
 
 
-def familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
-    n_foreign_keys = n_foreign_atoms + n_foreign_bonds + n_foreign_environments
-
-    familiarity = 1 / (n_foreign_keys + 1)
-
-    return familiarity
-
-
 def familiarity1(m, n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
     n_foreign_keys = n_foreign_atoms + n_foreign_bonds + n_foreign_environments
 
     n_keys = m.GetNumAtoms() * 2 + m.GetNumBonds()
 
     familiarity = (n_keys - n_foreign_keys) / n_keys
+
+    return familiarity
+
+
+def familiarity2(n_foreign_atoms, n_foreign_bonds, n_foreign_environments):
+    n_foreign_keys = n_foreign_atoms + n_foreign_bonds + n_foreign_environments
+
+    familiarity = 1 / (n_foreign_keys + 1)
 
     return familiarity
 
@@ -144,11 +144,9 @@ def parse_subprocess_output(command, current_env):
         left_tuple_str = match.group(1)
         right_tuple_str = match.group(2)
 
-        # Convert to integers
         left_tuple = list(map(int, left_tuple_str.split(",")))
         right_tuple = list(map(int, right_tuple_str.split(",")))
 
-        # The "third position" means index 2 (0-based indexing)
         left_third = left_tuple[2]
         right_third = right_tuple[2]
 
@@ -161,40 +159,9 @@ def parse_subprocess_output(command, current_env):
     return parsed_data
 
 
-def ParseArgs(arg_list=None):
-    parser = argparse.ArgumentParser(
-        description="Get familiarity scores from TMC SMILES", fromfile_prefix_chars="+"
-    )
-    parser.add_argument("--smiles", type=str, default=None)
-    parser.add_argument(
-        "--log_level",
-        type=str,
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="Set the logging level",
-    )
-    parser.add_argument(
-        "--db-path",
-        type=str,
-        default="familiarity_scores.db",
-        help="Path to the SQLite database file used to store familiarity scores",
-    )
-    parser.add_argument(
-        "--reference_dict",
-        type=Path,
-        default="./dicts/csd_smiles_both_agree_train.dict",
-        help="Path to the TMC reference dict",
-    )
-    (
-        parser.add_argument(
-            "--exclude_tm_env", action="store_true", help="Apply size modifier"
-        ),
-    )
-
-    return parser.parse_args(arg_list)
-
-
 def get_scores_from_output(smiles, args, output):
+    "Calculate familiarity scores based on parsed output from the HighlightMoleculeErrors binary"
+
     n_foreign_atoms = int(output["foreign_atom_keys"])
     n_foreign_bonds = int(output["foreign_bond_keys"])
     n_foreign_environments = int(len(output["foreign_atomic_environments"]))
@@ -243,7 +210,6 @@ def get_familiarity(smiles, reference_dict=None, args=None):
     ]
     logger.debug(f"Executing command for SMILES: {smiles}")
 
-    # Run the subprocess
     output = parse_subprocess_output(command, current_env)
     logger.debug(json.dumps(output, indent=4))
 
@@ -251,6 +217,41 @@ def get_familiarity(smiles, reference_dict=None, args=None):
     output = get_scores_from_output(smiles, args, output)
 
     return output
+
+
+def ParseArgs(arg_list=None):
+    parser = argparse.ArgumentParser(
+        description="Get familiarity scores from TMC SMILES", fromfile_prefix_chars="+"
+    )
+    parser.add_argument("--smiles", type=str, default=None)
+    parser.add_argument(
+        "--log_level",
+        type=str,
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the logging level",
+    )
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default="familiarity_scores.db",
+        help="Path to the SQLite database file used to store familiarity scores",
+    )
+    parser.add_argument(
+        "--reference_dict",
+        type=Path,
+        default="./dicts/csd_smiles_both_agree_train.dict",
+        help="Path to the TMC reference dict",
+    )
+    (
+        parser.add_argument(
+            "--exclude_tm_env",
+            action="store_true",
+            help="Decides whether TM environments are included when calculating f3",
+        ),
+    )
+
+    return parser.parse_args(arg_list)
 
 
 if __name__ == "__main__":
@@ -261,18 +262,10 @@ if __name__ == "__main__":
         logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
         logger.setLevel(getattr(logging, args.log_level))
 
-    # Initialize database manager
-    # db_manager = DatabaseManager(args.db_path)
-
     # Reference dictionary
     reference_dict = args.reference_dict.resolve()
 
     args = vars(args)
-
-    # Check if the familiarity score already exists
-    # existing_score = db_manager.get_existing_familiarity_scores(args.smiles)
-    # if existing_score is not None:
-    #     logger.info(f"Familiarity score for SMILES already exists: {existing_score}")
 
     # Compute or retrieve familiarity score
     output = get_familiarity(
@@ -280,6 +273,3 @@ if __name__ == "__main__":
     )
     logger.info("Printing the familiarity output:")
     logger.info(json.dumps(output, indent=4))
-
-    # Store the familiarity score in the database
-    # db_manager.store_familiarity_scores(args.smiles, fam1, fam2)

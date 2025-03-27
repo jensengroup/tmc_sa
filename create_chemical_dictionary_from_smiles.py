@@ -29,7 +29,7 @@ def ParseArgs(arg_list=None):
         type=str,
         default=None,
         required=True,
-        help="Output dict name",
+        help="Output TMC dict name",
     )
     parser.add_argument(
         "--environment_radius",
@@ -62,7 +62,7 @@ def get_dict():
         f"{args.environment_radius}",  # Atomic enironment radius
     ]
 
-    # Run the subprocess
+    # Run the compiled binary
     output = run_shell(command, current_env)
 
     if "Error" in output:
@@ -72,10 +72,9 @@ def get_dict():
         "Succesfully created single entry dict. Adding remaning entries at the Python level"
     )
 
-    logger.info(f"Loading the single entry dict: {args.dict_name}")
+    logger.info(f"Loading the single entry dict in Python: {args.dict_name}")
     dictionary = mac.ChemicalDictionary(args.dict_name)
 
-    # Get mols from smiles data
     smiles = pd.read_csv(args.smiles_data, header=None)[0]
     logger.info(f"Loaded data: \n {smiles.head(5).to_string()}")
 
@@ -85,7 +84,6 @@ def get_dict():
         logger.info(f"{len(smiles)} SMILES loaded")
 
     mols = [Chem.MolFromSmiles(smi) for smi in smiles if smi]
-
     logger.info(f"Adding {len(mols)} mols to the dictionary")
 
     start = time.time()
@@ -98,10 +96,12 @@ def get_dict():
     logger.info(f"Processed all {len(mols)}")
     end = time.time()
 
-    dictionary.number_of_molecules = len(mols)
-    dictionary.dataset = args.smiles_data
     dictionary.BuildPartialKeyDictionaries()
     dictionary.Save(args.dict_name)
+
+    # Set custom attributes
+    dictionary.number_of_molecules = len(mols)
+    dictionary.dataset = args.smiles_data
 
     logger.info(f"Created dictionary in {end-start} seconds")
 
